@@ -42,6 +42,7 @@ export interface AppState {
   ratings: Rating[]
   activeUserId: string | null
   syncConfig: SyncConfig | null
+  tmdbApiKey: string | null
   deletedUserIds: string[]
   deletedMovieIds: string[]
   deletedRatingIds: string[]
@@ -66,6 +67,7 @@ export interface AppState {
 
   // Sync actions
   setSyncConfig: (config: SyncConfig | null) => void
+  setTmdbApiKey: (key: string | null) => void
   hydrate: () => void
   replaceAll: (data: { users: User[]; movies: Movie[]; ratings: Rating[] }) => void
 }
