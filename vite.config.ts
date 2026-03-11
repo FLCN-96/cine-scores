@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  base: '/cine-scores/',
   plugins: [
     react(),
     VitePWA({
@@ -15,7 +16,8 @@ export default defineConfig({
         background_color: '#141414',
         display: 'standalone',
         orientation: 'portrait',
-        start_url: '/',
+        start_url: '/cine-scores/',
+        scope: '/cine-scores/',
         icons: [
           {
             src: 'icon-192.svg',
