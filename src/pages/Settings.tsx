@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useSync } from '../hooks/useSync'
+import { useStore } from '../store'
 import type { SyncConfig } from '../types'
 
 function formatTs(ts: string | null) {
@@ -10,6 +11,7 @@ function formatTs(ts: string | null) {
 
 export function Settings() {
   const { sync, syncing, lastSynced, error, syncConfig, setSyncConfig } = useSync()
+  const { tmdbApiKey, setTmdbApiKey } = useStore()
   const [editing, setEditing] = useState(false)
   const [pat, setPat] = useState(syncConfig?.pat ?? '')
   const [owner, setOwner] = useState(syncConfig?.owner ?? '')
@@ -17,6 +19,15 @@ export function Settings() {
   const [branch, setBranch] = useState(syncConfig?.branch ?? 'main')
   const [saved, setSaved] = useState(false)
   const [confirmClear, setConfirmClear] = useState(false)
+  const [tmdbKey, setTmdbKey] = useState(tmdbApiKey ?? '')
+  const [tmdbSaved, setTmdbSaved] = useState(false)
+
+  function handleTmdbSave(e: React.FormEvent) {
+    e.preventDefault()
+    setTmdbApiKey(tmdbKey.trim() || null)
+    setTmdbSaved(true)
+    setTimeout(() => setTmdbSaved(false), 2000)
+  }
 
   function handleSave(e: React.FormEvent) {
     e.preventDefault()
@@ -131,6 +142,33 @@ export function Settings() {
             Edit GitHub Config
           </button>
         )}
+
+        {/* TMDB API */}
+        <div className="section" style={{ marginTop: 'var(--space-md)' }}>
+          <div className="section-title">TMDB Integration</div>
+          <div className="sync-hint">
+            A free TMDB API key enables automatic poster and metadata lookup when adding movies.
+            Get one at <strong>themoviedb.org/settings/api</strong>.
+          </div>
+          <form onSubmit={handleTmdbSave}>
+            <div className="form-group">
+              <label>API Key</label>
+              <input
+                type="password"
+                value={tmdbKey}
+                onChange={e => setTmdbKey(e.target.value)}
+                placeholder="Paste your TMDB API key…"
+                autoComplete="off"
+              />
+            </div>
+            <button
+              type="submit"
+              className={`btn btn--full ${tmdbSaved ? 'btn--saved' : 'btn--primary'}`}
+            >
+              {tmdbSaved ? '✓ Saved!' : tmdbApiKey ? 'Update Key' : 'Save Key'}
+            </button>
+          </form>
+        </div>
 
         {/* About */}
         <div className="section" style={{ marginTop: 'var(--space-md)' }}>
