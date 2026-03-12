@@ -18,6 +18,7 @@ export interface Movie {
   tmdbId: number | null
   watched: boolean
   watchedAt: string | null
+  attendees: string[]
 }
 
 export interface Rating {
@@ -59,6 +60,7 @@ export interface AppState {
   updateMovie: (id: string, patch: Partial<Omit<Movie, 'id'>>) => void
   deleteMovie: (id: string) => void
   markWatched: (id: string) => void
+  toggleAttendance: (movieId: string) => void
 
   // Rating actions
   addRating: (rating: Omit<Rating, 'id' | 'ratedAt'>) => void

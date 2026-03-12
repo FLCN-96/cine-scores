@@ -92,6 +92,7 @@ export const useStore = create<AppState>((set, get) => ({
       addedAt: new Date().toISOString(),
       watched: false,
       watchedAt: null,
+      attendees: [],
     }
     const movies = [...get().movies, movie]
     set({ movies })
@@ -118,6 +119,19 @@ export const useStore = create<AppState>((set, get) => ({
     const movies = get().movies.map(m =>
       m.id === id ? { ...m, watched: true, watchedAt: new Date().toISOString() } : m
     )
+    set({ movies })
+    save(LS.movies, movies)
+  },
+
+  toggleAttendance(movieId) {
+    const { activeUserId } = get()
+    if (!activeUserId) return
+    const movies = get().movies.map(m => {
+      if (m.id !== movieId) return m
+      const attendees = m.attendees ?? []
+      const going = attendees.includes(activeUserId)
+      return { ...m, attendees: going ? attendees.filter(id => id !== activeUserId) : [...attendees, activeUserId] }
+    })
     set({ movies })
     save(LS.movies, movies)
   },

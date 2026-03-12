@@ -16,17 +16,22 @@ function formatDate(d: string) {
 }
 
 export function MovieDetailSheet({ movie, onClose }: Props) {
-  const { deleteMovie, markWatched, users, ratings, movies } = useStore()
+  const { deleteMovie, markWatched, toggleAttendance, users, ratings, movies, activeUserId } = useStore()
   const [showRate, setShowRate] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const statsMap = useAllMovieStats(movies, ratings)
-  const stats = statsMap[movie.id]
+
+  // Use live movie from store so attendance toggling reflects immediately
+  const liveMovie = movies.find(m => m.id === movie.id) ?? movie
+  const stats = statsMap[liveMovie.id]
+  const attendees = liveMovie.attendees ?? []
+  const iAmGoing = activeUserId ? attendees.includes(activeUserId) : false
 
   if (showRate) {
-    return <RateMovieSheet movie={movie} onClose={() => setShowRate(false)} />
+    return <RateMovieSheet movie={liveMovie} onClose={() => setShowRate(false)} />
   }
 
-  const movieRatings = ratings.filter(r => r.movieId === movie.id)
+  const movieRatings = ratings.filter(r => r.movieId === liveMovie.id)
 
   return (
     <div className="overlay" onClick={onClose}>
@@ -45,11 +50,11 @@ export function MovieDetailSheet({ movie, onClose }: Props) {
 
           {/* Poster + meta */}
           <div className="sheet-movie-header">
-            <MoviePoster posterUrl={movie.posterUrl} title={movie.title} size="lg" />
+            <MoviePoster posterUrl={liveMovie.posterUrl} title={liveMovie.title} size="lg" />
             <div className="sheet-movie-meta">
-              <div className="sheet-movie-title">{movie.title}</div>
+              <div className="sheet-movie-title">{liveMovie.title}</div>
               <div className="sheet-movie-sub">
-                {[movie.year, movie.genre].filter(Boolean).join(' · ')}
+                {[liveMovie.year, liveMovie.genre].filter(Boolean).join(' · ')}
               </div>
               {stats.avg !== null && (
                 <div className="sheet-movie-score">
@@ -59,13 +64,13 @@ export function MovieDetailSheet({ movie, onClose }: Props) {
                   </span>
                 </div>
               )}
-              {movie.scheduledDate && !movie.watched && (
+              {liveMovie.scheduledDate && !liveMovie.watched && (
                 <div className="movie-scheduled" style={{ marginTop: 'var(--space-sm)', display: 'flex', alignItems: 'center', gap: 4 }}>
                   <IconCalendar size={12} />
-                  {formatDate(movie.scheduledDate)}
+                  {formatDate(liveMovie.scheduledDate)}
                 </div>
               )}
-              {movie.watched && (
+              {liveMovie.watched && (
                 <div style={{ marginTop: 'var(--space-sm)' }}>
                   <span className="movie-watched-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                     <IconCheck size={11} />
@@ -76,8 +81,27 @@ export function MovieDetailSheet({ movie, onClose }: Props) {
             </div>
           </div>
 
-          {movie.description && (
-            <div className="sheet-description">{movie.description}</div>
+          {liveMovie.description && (
+            <div className="sheet-description">{liveMovie.description}</div>
+          )}
+
+          {/* Attendance */}
+          {!liveMovie.watched && (
+            <div style={{ marginBottom: 'var(--space-md)' }}>
+              {attendees.length > 0 && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xs)', marginBottom: 'var(--space-sm)', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginRight: 2 }}>Going:</span>
+                  {attendees.map(uid => {
+                    const u = users.find(u => u.id === uid)
+                    return u ? (
+                      <div key={uid} title={u.name} className="avatar" style={{ background: u.color, width: 28, height: 28, fontSize: 12 }}>
+                        {u.name.charAt(0).toUpperCase()}
+                      </div>
+                    ) : null
+                  })}
+                </div>
+              )}
+            </div>
           )}
 
           {movieRatings.length > 0 && (
@@ -112,7 +136,7 @@ export function MovieDetailSheet({ movie, onClose }: Props) {
             <div className="confirm-row">
               <span style={{ flex: 1, fontSize: 14, color: 'var(--color-text-secondary)' }}>Delete this movie?</span>
               <button className="btn btn--secondary btn--sm" onClick={() => setConfirmDelete(false)}>Cancel</button>
-              <button className="btn btn--danger btn--sm" onClick={() => { deleteMovie(movie.id); onClose() }}>Delete</button>
+              <button className="btn btn--danger btn--sm" onClick={() => { deleteMovie(liveMovie.id); onClose() }}>Delete</button>
             </div>
           ) : (
             <button
@@ -135,11 +159,25 @@ export function MovieDetailSheet({ movie, onClose }: Props) {
             >
               <IconStar size={15} filled /> Rate This
             </button>
-            {!movie.watched && (
+            {!liveMovie.watched && (
               <button
-                className="btn btn--secondary"
-                style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
-                onClick={() => { markWatched(movie.id); onClose() }}
+                className={`btn btn--full${iAmGoing ? ' btn--secondary' : ''}`}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  background: iAmGoing ? undefined : 'var(--color-surface)',
+                  border: iAmGoing ? undefined : '1.5px solid var(--color-border)',
+                  color: iAmGoing ? undefined : 'var(--color-text)',
+                }}
+                onClick={() => toggleAttendance(liveMovie.id)}
+              >
+                <IconCheck size={15} /> {iAmGoing ? "I'm Going ✓" : "I'm Going"}
+              </button>
+            )}
+            {!liveMovie.watched && (
+              <button
+                className="btn btn--ghost"
+                style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, flexShrink: 0 }}
+                onClick={() => { markWatched(liveMovie.id); onClose() }}
               >
                 <IconCheck size={15} /> Watched
               </button>
