@@ -33,6 +33,7 @@ export function AddMovieSheet({ onClose }: Props) {
   const [description, setDescription] = useState('')
   const [posterUrl, setPosterUrl] = useState('')
   const [scheduledDate, setScheduledDate] = useState(TODAY)
+  const [unplanned, setUnplanned] = useState(false)
   const [tmdbId, setTmdbId] = useState<number | null>(null)
 
   const [suggestions, setSuggestions] = useState<TmdbResult[]>([])
@@ -82,7 +83,7 @@ export function AddMovieSheet({ onClose }: Props) {
       genre,
       description,
       posterUrl,
-      scheduledDate: scheduledDate || null,
+      scheduledDate: unplanned ? null : (scheduledDate || null),
       addedBy: activeUserId ?? '',
       tmdbId,
     })
@@ -207,12 +208,24 @@ export function AddMovieSheet({ onClose }: Props) {
             )}
 
             <div className="form-group">
-              <label>Watch Date</label>
-              <input
-                type="date"
-                value={scheduledDate}
-                onChange={e => setScheduledDate(e.target.value)}
-              />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: unplanned ? 0 : 'var(--space-xs)' }}>
+                <label style={{ marginBottom: 0 }}>Watch Date</label>
+                <button
+                  type="button"
+                  className={`btn btn--sm${unplanned ? ' btn--secondary' : ' btn--ghost'}`}
+                  style={{ fontSize: 12 }}
+                  onClick={() => setUnplanned(u => !u)}
+                >
+                  {unplanned ? 'Unplanned ✓' : 'Unplanned'}
+                </button>
+              </div>
+              {!unplanned && (
+                <input
+                  type="date"
+                  value={scheduledDate}
+                  onChange={e => setScheduledDate(e.target.value)}
+                />
+              )}
             </div>
 
           </form>
