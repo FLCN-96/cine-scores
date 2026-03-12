@@ -7,6 +7,7 @@ const LS = {
   ratings: 'cine-scores:ratings',
   activeUserId: 'cine-scores:activeUserId',
   syncConfig: 'cine-scores:syncConfig',
+  tmdbApiKey: 'cine-scores:tmdbApiKey',
   deletedUserIds: 'cine-scores:deletedUserIds',
   deletedMovieIds: 'cine-scores:deletedMovieIds',
   deletedRatingIds: 'cine-scores:deletedRatingIds',
@@ -35,6 +36,7 @@ export const useStore = create<AppState>((set, get) => ({
   ratings: [],
   activeUserId: null,
   syncConfig: null,
+  tmdbApiKey: null,
   deletedUserIds: [],
   deletedMovieIds: [],
   deletedRatingIds: [],
@@ -46,10 +48,11 @@ export const useStore = create<AppState>((set, get) => ({
     const ratings = load<Rating[]>(LS.ratings, [])
     const activeUserId = load<string | null>(LS.activeUserId, null)
     const syncConfig = load<SyncConfig | null>(LS.syncConfig, null)
+    const tmdbApiKey = load<string | null>(LS.tmdbApiKey, null)
     const deletedUserIds = load<string[]>(LS.deletedUserIds, [])
     const deletedMovieIds = load<string[]>(LS.deletedMovieIds, [])
     const deletedRatingIds = load<string[]>(LS.deletedRatingIds, [])
-    set({ users, movies, ratings, activeUserId, syncConfig, deletedUserIds, deletedMovieIds, deletedRatingIds, hydrated: true })
+    set({ users, movies, ratings, activeUserId, syncConfig, tmdbApiKey, deletedUserIds, deletedMovieIds, deletedRatingIds, hydrated: true })
   },
 
   addUser(fields) {
@@ -151,6 +154,11 @@ export const useStore = create<AppState>((set, get) => ({
   setSyncConfig(config) {
     set({ syncConfig: config })
     save(LS.syncConfig, config)
+  },
+
+  setTmdbApiKey(key) {
+    set({ tmdbApiKey: key })
+    save(LS.tmdbApiKey, key)
   },
 
   replaceAll({ users, movies, ratings }) {

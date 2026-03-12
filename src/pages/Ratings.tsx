@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { useStore } from '../store'
 import { MoviePoster } from '../components/MoviePoster'
 import { MovieDetailSheet } from '../components/MovieDetailSheet'
+import { IconStar } from '../components/Icons'
 import type { Movie } from '../types'
 
 export function Ratings() {
@@ -53,7 +54,7 @@ export function Ratings() {
 
         {moviesWithStats.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-state__icon">⭐</div>
+            <div className="empty-state__icon"><IconStar size={44} /></div>
             <div className="empty-state__text">No ratings yet.<br />Watch some movies and rate them!</div>
           </div>
         ) : (
