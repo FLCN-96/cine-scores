@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useStore } from './store'
 import { TabBar } from './components/TabBar'
+import { SyncButton } from './components/SyncButton'
 import { Home } from './pages/Home'
 import { Upcoming } from './pages/Upcoming'
 import { Ratings } from './pages/Ratings'
@@ -19,6 +20,7 @@ export function App() {
 
   return (
     <div className="app-shell">
+      <SyncButton />
       <div className="app-content" style={{ padding: 0 }}>
         <Routes>
           <Route path="/" element={<Home />} />

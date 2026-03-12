@@ -11,6 +11,7 @@ const LS = {
   deletedUserIds: 'cine-scores:deletedUserIds',
   deletedMovieIds: 'cine-scores:deletedMovieIds',
   deletedRatingIds: 'cine-scores:deletedRatingIds',
+  lastModified: 'cine-scores:lastModified',
 }
 
 function load<T>(key: string, fallback: T): T {
@@ -24,6 +25,12 @@ function load<T>(key: string, fallback: T): T {
 
 function save(key: string, value: unknown) {
   localStorage.setItem(key, JSON.stringify(value))
+}
+
+function touch() {
+  const ts = new Date().toISOString()
+  localStorage.setItem(LS.lastModified, ts)
+  return ts
 }
 
 function uid() {
@@ -41,6 +48,7 @@ export const useStore = create<AppState>((set, get) => ({
   deletedMovieIds: [],
   deletedRatingIds: [],
   hydrated: false,
+  lastModified: null,
 
   hydrate() {
     const users = load<User[]>(LS.users, [])
@@ -52,21 +60,22 @@ export const useStore = create<AppState>((set, get) => ({
     const deletedUserIds = load<string[]>(LS.deletedUserIds, [])
     const deletedMovieIds = load<string[]>(LS.deletedMovieIds, [])
     const deletedRatingIds = load<string[]>(LS.deletedRatingIds, [])
-    set({ users, movies, ratings, activeUserId, syncConfig, tmdbApiKey, deletedUserIds, deletedMovieIds, deletedRatingIds, hydrated: true })
+    const lastModified = localStorage.getItem(LS.lastModified) ?? null
+    set({ users, movies, ratings, activeUserId, syncConfig, tmdbApiKey, deletedUserIds, deletedMovieIds, deletedRatingIds, hydrated: true, lastModified })
   },
 
   addUser(fields) {
     const user: User = { ...fields, id: uid(), createdAt: new Date().toISOString() }
     const users = [...get().users, user]
     const activeUserId = get().activeUserId ?? user.id
-    set({ users, activeUserId })
+    set({ users, activeUserId, lastModified: touch() })
     save(LS.users, users)
     save(LS.activeUserId, activeUserId)
   },
 
   updateUser(id, patch) {
     const users = get().users.map(u => u.id === id ? { ...u, ...patch } : u)
-    set({ users })
+    set({ users, lastModified: touch() })
     save(LS.users, users)
   },
 
@@ -74,7 +83,7 @@ export const useStore = create<AppState>((set, get) => ({
     const users = get().users.filter(u => u.id !== id)
     const deletedUserIds = [...get().deletedUserIds, id]
     const activeUserId = get().activeUserId === id ? (users[0]?.id ?? null) : get().activeUserId
-    set({ users, deletedUserIds, activeUserId })
+    set({ users, deletedUserIds, activeUserId, lastModified: touch() })
     save(LS.users, users)
     save(LS.deletedUserIds, deletedUserIds)
     save(LS.activeUserId, activeUserId)
@@ -95,13 +104,13 @@ export const useStore = create<AppState>((set, get) => ({
       attendees: [],
     }
     const movies = [...get().movies, movie]
-    set({ movies })
+    set({ movies, lastModified: touch() })
     save(LS.movies, movies)
   },
 
   updateMovie(id, patch) {
     const movies = get().movies.map(m => m.id === id ? { ...m, ...patch } : m)
-    set({ movies })
+    set({ movies, lastModified: touch() })
     save(LS.movies, movies)
   },
 
@@ -109,7 +118,7 @@ export const useStore = create<AppState>((set, get) => ({
     const movies = get().movies.filter(m => m.id !== id)
     const ratings = get().ratings.filter(r => r.movieId !== id)
     const deletedMovieIds = [...get().deletedMovieIds, id]
-    set({ movies, ratings, deletedMovieIds })
+    set({ movies, ratings, deletedMovieIds, lastModified: touch() })
     save(LS.movies, movies)
     save(LS.ratings, ratings)
     save(LS.deletedMovieIds, deletedMovieIds)
@@ -119,7 +128,7 @@ export const useStore = create<AppState>((set, get) => ({
     const movies = get().movies.map(m =>
       m.id === id ? { ...m, watched: true, watchedAt: new Date().toISOString() } : m
     )
-    set({ movies })
+    set({ movies, lastModified: touch() })
     save(LS.movies, movies)
   },
 
@@ -132,7 +141,7 @@ export const useStore = create<AppState>((set, get) => ({
       const going = attendees.includes(activeUserId)
       return { ...m, attendees: going ? attendees.filter(id => id !== activeUserId) : [...attendees, activeUserId] }
     })
-    set({ movies })
+    set({ movies, lastModified: touch() })
     save(LS.movies, movies)
   },
 
@@ -147,20 +156,20 @@ export const useStore = create<AppState>((set, get) => ({
       const rating: Rating = { ...fields, id: uid(), ratedAt: new Date().toISOString() }
       ratings = [...get().ratings, rating]
     }
-    set({ ratings })
+    set({ ratings, lastModified: touch() })
     save(LS.ratings, ratings)
   },
 
   updateRating(id, patch) {
     const ratings = get().ratings.map(r => r.id === id ? { ...r, ...patch } : r)
-    set({ ratings })
+    set({ ratings, lastModified: touch() })
     save(LS.ratings, ratings)
   },
 
   deleteRating(id) {
     const ratings = get().ratings.filter(r => r.id !== id)
     const deletedRatingIds = [...get().deletedRatingIds, id]
-    set({ ratings, deletedRatingIds })
+    set({ ratings, deletedRatingIds, lastModified: touch() })
     save(LS.ratings, ratings)
     save(LS.deletedRatingIds, deletedRatingIds)
   },
@@ -176,7 +185,8 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   replaceAll({ users, movies, ratings }) {
-    set({ users, movies, ratings })
+    localStorage.removeItem(LS.lastModified)
+    set({ users, movies, ratings, lastModified: null })
     save(LS.users, users)
     save(LS.movies, movies)
     save(LS.ratings, ratings)
