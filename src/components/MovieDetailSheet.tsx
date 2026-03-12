@@ -171,7 +171,7 @@ export function MovieDetailSheet({ movie, onClose }: Props) {
             <button
               className="btn btn--full"
               style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: 'var(--color-surface)', border: '1.5px solid var(--color-border)', color: 'var(--color-text)' }}
-              onClick={() => { markWatched(liveMovie.id); onClose() }}
+              onClick={() => markWatched(liveMovie.id)}
             >
               <IconCheck size={15} /> Watched
             </button>
