@@ -14,7 +14,7 @@ function formatDate(d: string) {
 }
 
 export function Upcoming() {
-  const { movies, ratings } = useStore()
+  const { movies, ratings, users } = useStore()
   const [selected, setSelected] = useState<Movie | null>(null)
   const [showAdd, setShowAdd] = useState(false)
   const [filter, setFilter] = useState<Filter>('upcoming')
@@ -101,6 +101,18 @@ export function Upcoming() {
                         <IconCheck size={11} />Watched
                       </span>
                     )}
+                  {!m.watched && (m.attendees ?? []).length > 0 && (
+                    <div style={{ display: 'flex', gap: 2, marginTop: 4 }}>
+                      {(m.attendees ?? []).map(uid => {
+                        const u = users.find(u => u.id === uid)
+                        return u ? (
+                          <div key={uid} title={u.name} className="avatar" style={{ background: u.color, width: 18, height: 18, fontSize: 9 }}>
+                            {u.name.charAt(0).toUpperCase()}
+                          </div>
+                        ) : null
+                      })}
+                    </div>
+                  )}
                   </div>
                   {stats.avg !== null && (
                     <div style={{
