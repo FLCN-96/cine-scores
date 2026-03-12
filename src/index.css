@@ -450,6 +450,24 @@ img { display: block; max-width: 100%; }
   align-items: flex-end;
 }
 
+.overlay--center {
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+}
+
+/* ── Centered Modal Dialog (for add/edit forms) ─────────── */
+.modal-dialog {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 480px;
+  max-height: 85dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .sheet {
   background: var(--color-surface);
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
