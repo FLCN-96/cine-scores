@@ -1,4 +1,46 @@
 <svg xmlns='http://www.w3.org/2000/svg' width='192' height='192' viewBox='0 0 192 192'>
-  <rect width='192' height='192' rx='24' fill='#c0392b'/>
-  <text x='96' y='130' font-size='100' text-anchor='middle' fill='white'>🎬</text>
+  <!-- Background -->
+  <rect width='192' height='192' rx='32' fill='#1a1a1a'/>
+
+  <!-- Film reel outer ring -->
+  <circle cx='96' cy='108' r='62' fill='none' stroke='#c0392b' stroke-width='8'/>
+  <!-- Reel hub -->
+  <circle cx='96' cy='108' r='20' fill='#c0392b'/>
+  <circle cx='96' cy='108' r='10' fill='#1a1a1a'/>
+
+  <!-- Reel spokes + sprocket holes (6 evenly spaced) -->
+  <!-- Spoke 1: 12 o'clock -->
+  <line x1='96' y1='88' x2='96' y2='52' stroke='#c0392b' stroke-width='5' stroke-linecap='round'/>
+  <circle cx='96' cy='48' r='7' fill='none' stroke='#c0392b' stroke-width='5'/>
+  <!-- Spoke 2: 2 o'clock -->
+  <line x1='110' y1='95' x2='138' y2='79' stroke='#c0392b' stroke-width='5' stroke-linecap='round'/>
+  <circle cx='142' cy='77' r='7' fill='none' stroke='#c0392b' stroke-width='5'/>
+  <!-- Spoke 3: 4 o'clock -->
+  <line x1='110' y1='121' x2='138' y2='137' stroke='#c0392b' stroke-width='5' stroke-linecap='round'/>
+  <circle cx='142' cy='139' r='7' fill='none' stroke='#c0392b' stroke-width='5'/>
+  <!-- Spoke 4: 6 o'clock -->
+  <line x1='96' y1='128' x2='96' y2='164' stroke='#c0392b' stroke-width='5' stroke-linecap='round'/>
+  <circle cx='96' cy='168' r='7' fill='none' stroke='#c0392b' stroke-width='5'/>
+  <!-- Spoke 5: 8 o'clock -->
+  <line x1='82' y1='121' x2='54' y2='137' stroke='#c0392b' stroke-width='5' stroke-linecap='round'/>
+  <circle cx='50' cy='139' r='7' fill='none' stroke='#c0392b' stroke-width='5'/>
+  <!-- Spoke 6: 10 o'clock -->
+  <line x1='82' y1='95' x2='54' y2='79' stroke='#c0392b' stroke-width='5' stroke-linecap='round'/>
+  <circle cx='50' cy='77' r='7' fill='none' stroke='#c0392b' stroke-width='5'/>
+
+  <!-- Bird (simple, stylised) flying up-right from top of reel -->
+  <!-- Body -->
+  <ellipse cx='105' cy='42' rx='11' ry='7' fill='#f0f0f0' transform='rotate(-20 105 42)'/>
+  <!-- Head -->
+  <circle cx='116' cy='36' r='7' fill='#f0f0f0'/>
+  <!-- Beak -->
+  <polygon points='122,34 130,33 122,38' fill='#e67e22'/>
+  <!-- Eye -->
+  <circle cx='118' cy='34' r='1.8' fill='#1a1a1a'/>
+  <!-- Left wing up -->
+  <path d='M100,38 Q90,22 78,26 Q88,34 98,42 Z' fill='#f0f0f0'/>
+  <!-- Tail -->
+  <path d='M95,46 Q85,52 80,48 Q88,46 95,42 Z' fill='#d0d0d0'/>
+  <!-- Film strip ribbon from reel to bird (loose strip) -->
+  <path d='M96,48 Q100,44 104,43' fill='none' stroke='#e67e22' stroke-width='2.5' stroke-linecap='round' stroke-dasharray='2,2'/>
 </svg>
