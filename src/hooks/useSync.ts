@@ -49,6 +49,7 @@ async function ghPush(pat: string, owner: string, repo: string, branch: string, 
     if (res.status === 404) throw new Error(`Repo "${owner}/${repo}" not found (404) — check your owner/repo name and that the repo exists`)
     if (res.status === 401) throw new Error('Invalid PAT (401) — check your Personal Access Token')
     if (res.status === 403) throw new Error('PAT lacks repo write permission (403) — enable Contents read+write')
+    if (res.status === 409) throw new Error('Conflict (409) — another push is in progress, try again')
     if (res.status === 422) throw new Error('SHA conflict (422) — try syncing again to refresh')
     throw new Error(`GitHub push failed: ${res.status}`)
   }
@@ -121,11 +122,9 @@ export function useSync() {
         deletedRatingIds,
       )
 
-      await Promise.all([
-        ghPush(pat, owner, repo, branch, 'data/users.json', JSON.stringify(merged.users, null, 2), uf?.sha ?? null),
-        ghPush(pat, owner, repo, branch, 'data/movies.json', JSON.stringify(merged.movies, null, 2), mf?.sha ?? null),
-        ghPush(pat, owner, repo, branch, 'data/ratings.json', JSON.stringify(merged.ratings, null, 2), rf?.sha ?? null),
-      ])
+      await ghPush(pat, owner, repo, branch, 'data/users.json', JSON.stringify(merged.users, null, 2), uf?.sha ?? null)
+      await ghPush(pat, owner, repo, branch, 'data/movies.json', JSON.stringify(merged.movies, null, 2), mf?.sha ?? null)
+      await ghPush(pat, owner, repo, branch, 'data/ratings.json', JSON.stringify(merged.ratings, null, 2), rf?.sha ?? null)
 
       replaceAll(merged)
 

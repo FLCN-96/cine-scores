@@ -16,7 +16,7 @@ function formatDate(d: string) {
 }
 
 export function MovieDetailSheet({ movie, onClose }: Props) {
-  const { deleteMovie, markWatched, toggleAttendance, users, ratings, movies, activeUserId } = useStore()
+  const { deleteMovie, markWatched, markUnwatched, toggleAttendance, users, ratings, movies, activeUserId } = useStore()
   const [showRate, setShowRate] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const statsMap = useAllMovieStats(movies, ratings)
@@ -147,32 +147,42 @@ export function MovieDetailSheet({ movie, onClose }: Props) {
         <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
           <button
             className="btn btn--primary btn--full"
-            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+            style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
             onClick={() => setShowRate(true)}
           >
             <IconStar size={15} filled /> Rate This
           </button>
           {!liveMovie.watched && (
             <button
-              className={`btn btn--full${iAmGoing ? ' btn--secondary' : ''}`}
+              className="btn btn--full"
               style={{
-                display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                background: iAmGoing ? undefined : 'var(--color-surface)',
-                border: iAmGoing ? undefined : '1.5px solid var(--color-border)',
-                color: iAmGoing ? undefined : 'var(--color-text)',
+                flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                background: 'var(--color-surface)',
+                border: '1.5px solid var(--color-border)',
+                color: 'var(--color-text)',
+                opacity: iAmGoing ? 0.5 : 1,
               }}
               onClick={() => toggleAttendance(liveMovie.id)}
             >
-              <IconCheck size={15} /> {iAmGoing ? "I'm Going ✓" : "I'm Going"}
+              <IconCheck size={15} /> {iAmGoing ? 'Going' : "I'm Going"}
             </button>
           )}
           {!liveMovie.watched && (
             <button
-              className="btn btn--ghost"
-              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, flexShrink: 0 }}
+              className="btn btn--full"
+              style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: 'var(--color-surface)', border: '1.5px solid var(--color-border)', color: 'var(--color-text)' }}
               onClick={() => { markWatched(liveMovie.id); onClose() }}
             >
               <IconCheck size={15} /> Watched
+            </button>
+          )}
+          {liveMovie.watched && (
+            <button
+              className="btn btn--full"
+              style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: 'var(--color-surface)', border: '1.5px solid var(--color-border)', color: 'var(--color-text-muted)' }}
+              onClick={() => markUnwatched(liveMovie.id)}
+            >
+              Unwatch
             </button>
           )}
         </div>

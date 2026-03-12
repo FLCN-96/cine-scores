@@ -61,6 +61,7 @@ export interface AppState {
   updateMovie: (id: string, patch: Partial<Omit<Movie, 'id'>>) => void
   deleteMovie: (id: string) => void
   markWatched: (id: string) => void
+  markUnwatched: (id: string) => void
   toggleAttendance: (movieId: string) => void
 
   // Rating actions

@@ -134,6 +134,14 @@ export const useStore = create<AppState>((set, get) => ({
     save(LS.movies, movies)
   },
 
+  markUnwatched(id) {
+    const movies = get().movies.map(m =>
+      m.id === id ? { ...m, watched: false, watchedAt: null } : m
+    )
+    set({ movies, lastModified: touch() })
+    save(LS.movies, movies)
+  },
+
   toggleAttendance(movieId) {
     const { activeUserId } = get()
     if (!activeUserId) return
