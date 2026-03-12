@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useStore } from '../store'
 import type { Movie } from '../types'
 import { MoviePoster } from './MoviePoster'
+import { IconBack } from './Icons'
 
 interface Props {
   movie: Movie
@@ -33,86 +34,87 @@ export function RateMovieSheet({ movie, onClose }: Props) {
     'var(--color-danger)'
 
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet sheet--detail" onClick={e => e.stopPropagation()}>
+    <div className="page-view">
 
-        <div className="sheet-topbar">
-          <div className="sheet-handle" style={{ margin: 0 }} />
-        </div>
-
-        <div className="sheet-body">
-          <form id="rate-movie-form" onSubmit={handleSubmit}>
-
-            <div style={{ display: 'flex', gap: 'var(--space-md)', alignItems: 'center', marginBottom: 'var(--space-lg)' }}>
-              <MoviePoster posterUrl={movie.posterUrl} title={movie.title} />
-              <div>
-                <div style={{ fontWeight: 700, fontSize: 18 }}>{movie.title}</div>
-                {movie.year && <div style={{ color: 'var(--color-text-secondary)', fontSize: 13 }}>{movie.year}</div>}
-              </div>
-            </div>
-
-            {!activeUser && (
-              <div style={{ color: 'var(--color-danger)', marginBottom: 'var(--space-md)' }}>
-                Please select an active user in the Users tab first.
-              </div>
-            )}
-
-            <div className="form-group">
-              <label>Rating as {activeUser?.name ?? '—'}</label>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)', marginTop: 'var(--space-xs)' }}>
-                <div className="star-row">
-                  {Array.from({ length: 10 }, (_, i) => i + 1).map(n => (
-                    <span
-                      key={n}
-                      className={`star${n <= displayScore ? ' filled' : ''}`}
-                      onMouseEnter={() => setHovered(n)}
-                      onMouseLeave={() => setHovered(null)}
-                      onClick={() => setScore(n)}
-                    >★</span>
-                  ))}
-                </div>
-                <div className="score-display" style={{ color: scoreColor, minWidth: 36 }}>
-                  {displayScore}
-                </div>
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label>Review (optional)</label>
-              <textarea
-                value={review}
-                onChange={e => setReview(e.target.value)}
-                placeholder="What did you think?"
-              />
-            </div>
-
-          </form>
-
-          <OtherRatings movieId={movie.id} excludeUserId={activeUserId ?? ''} />
-        </div>
-
-        <div className="sheet-footer">
-          <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
-            <button type="button" className="btn btn--secondary btn--full" onClick={onClose}>
-              Cancel
-            </button>
-            <button
-              type="submit"
-              form="rate-movie-form"
-              className={`btn btn--full ${saved ? 'btn--saved' : 'btn--primary'}`}
-              disabled={!activeUserId}
-            >
-              {saved ? (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                  <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-                  Saved!
-                </span>
-              ) : existing ? 'Update Rating' : 'Save Rating'}
-            </button>
-          </div>
-        </div>
-
+      <div className="page-nav">
+        <button className="page-nav__back" onClick={onClose}>
+          <IconBack size={20} /> Back
+        </button>
+        <div className="page-nav__title">Rate Movie</div>
       </div>
+
+      <div className="sheet-body">
+        <form id="rate-movie-form" onSubmit={handleSubmit}>
+
+          <div style={{ display: 'flex', gap: 'var(--space-md)', alignItems: 'center', marginBottom: 'var(--space-lg)' }}>
+            <MoviePoster posterUrl={movie.posterUrl} title={movie.title} />
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 18 }}>{movie.title}</div>
+              {movie.year && <div style={{ color: 'var(--color-text-secondary)', fontSize: 13 }}>{movie.year}</div>}
+            </div>
+          </div>
+
+          {!activeUser && (
+            <div style={{ color: 'var(--color-danger)', marginBottom: 'var(--space-md)' }}>
+              Please select an active user in the Users tab first.
+            </div>
+          )}
+
+          <div className="form-group">
+            <label>Rating as {activeUser?.name ?? '—'}</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)', marginTop: 'var(--space-xs)' }}>
+              <div className="star-row">
+                {Array.from({ length: 10 }, (_, i) => i + 1).map(n => (
+                  <span
+                    key={n}
+                    className={`star${n <= displayScore ? ' filled' : ''}`}
+                    onMouseEnter={() => setHovered(n)}
+                    onMouseLeave={() => setHovered(null)}
+                    onClick={() => setScore(n)}
+                  >★</span>
+                ))}
+              </div>
+              <div className="score-display" style={{ color: scoreColor, minWidth: 36 }}>
+                {displayScore}
+              </div>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>Review (optional)</label>
+            <textarea
+              value={review}
+              onChange={e => setReview(e.target.value)}
+              placeholder="What did you think?"
+            />
+          </div>
+
+        </form>
+
+        <OtherRatings movieId={movie.id} excludeUserId={activeUserId ?? ''} />
+      </div>
+
+      <div className="sheet-footer">
+        <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
+          <button type="button" className="btn btn--secondary btn--full" onClick={onClose}>
+            Cancel
+          </button>
+          <button
+            type="submit"
+            form="rate-movie-form"
+            className={`btn btn--full ${saved ? 'btn--saved' : 'btn--primary'}`}
+            disabled={!activeUserId}
+          >
+            {saved ? (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                Saved!
+              </span>
+            ) : existing ? 'Update Rating' : 'Save Rating'}
+          </button>
+        </div>
+      </div>
+
     </div>
   )
 }

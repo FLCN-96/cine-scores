@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useStore } from '../store'
+import { IconBack } from './Icons'
 
 interface Props {
   onClose: () => void
@@ -113,14 +114,16 @@ export function AddMovieSheet({ onClose }: Props) {
     'var(--color-danger)'
 
   return (
-    <div className="overlay overlay--center" onClick={onClose}>
-      <div className="modal-dialog" onClick={e => e.stopPropagation()}>
+    <div className="page-view">
 
-        <div className="sheet-topbar">
-          <div className="sheet-title" style={{ marginBottom: 0 }}>Add Movie</div>
-        </div>
+      <div className="page-nav">
+        <button className="page-nav__back" onClick={onClose}>
+          <IconBack size={20} /> Back
+        </button>
+        <div className="page-nav__title">Add Movie</div>
+      </div>
 
-        <div className="sheet-body">
+      <div className="sheet-body">
           {/* Status toggle */}
           <div className="seg-control">
             {(['watched', 'upcoming', 'unplanned'] as Status[]).map(s => (
@@ -311,9 +314,8 @@ export function AddMovieSheet({ onClose }: Props) {
               {status === 'watched' ? 'Add Watched' : status === 'upcoming' ? 'Add Movie' : 'Add to Backlog'}
             </button>
           </div>
-        </div>
-
       </div>
+
     </div>
   )
 }
