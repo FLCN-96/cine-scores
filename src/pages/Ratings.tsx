@@ -2,28 +2,51 @@ import { useState, useMemo } from 'react'
 import { useStore } from '../store'
 import { MoviePoster } from '../components/MoviePoster'
 import { MovieDetailSheet } from '../components/MovieDetailSheet'
+import { RateMovieSheet } from '../components/RateMovieSheet'
 import { IconStar } from '../components/Icons'
 import type { Movie } from '../types'
 
 export function Ratings() {
-  const { movies, ratings, users } = useStore()
+  const { movies, ratings, users, activeUserId } = useStore()
   const [selected, setSelected] = useState<Movie | null>(null)
+  const [ratingMovie, setRatingMovie] = useState<Movie | null>(null)
   const [filterUserId, setFilterUserId] = useState<string>('all')
 
-  const watchedMovies = useMemo(() =>
+  // "All" view: movies that are watched OR have any rating
+  const allViewMovies = useMemo(() =>
     movies.filter(m => m.watched || ratings.some(r => r.movieId === m.id)),
     [movies, ratings]
   )
 
+  // User view: watched movies + movies that user has rated
+  const userViewMovies = useMemo(() => {
+    if (filterUserId === 'all') return allViewMovies
+    const userRatedIds = new Set(ratings.filter(r => r.userId === filterUserId).map(r => r.movieId))
+    return movies.filter(m => m.watched || userRatedIds.has(m.id))
+  }, [filterUserId, movies, ratings, allViewMovies])
+
   const moviesWithStats = useMemo(() => {
-    return watchedMovies.map(m => {
+    return userViewMovies.map(m => {
       const mrs = filterUserId === 'all'
         ? ratings.filter(r => r.movieId === m.id)
         : ratings.filter(r => r.movieId === m.id && r.userId === filterUserId)
       const avg = mrs.length ? mrs.reduce((s, r) => s + r.score, 0) / mrs.length : null
       return { movie: m, avg: avg !== null ? Math.round(avg * 10) / 10 : null, count: mrs.length }
-    }).sort((a, b) => (b.avg ?? -1) - (a.avg ?? -1))
-  }, [watchedMovies, ratings, filterUserId])
+    }).sort((a, b) => {
+      // Rated first (by score desc), then unrated alphabetically
+      if (a.avg !== null && b.avg !== null) return b.avg - a.avg
+      if (a.avg !== null) return -1
+      if (b.avg !== null) return 1
+      return a.movie.title.localeCompare(b.movie.title)
+    })
+  }, [userViewMovies, ratings, filterUserId])
+
+  const ratedByMe = useMemo(() =>
+    new Set(ratings.filter(r => r.userId === activeUserId).map(r => r.movieId)),
+    [ratings, activeUserId]
+  )
+
+  const isMyFilter = filterUserId === activeUserId
 
   return (
     <div className="app-content">
@@ -32,7 +55,6 @@ export function Ratings() {
           <div className="page-title">Ratings</div>
         </div>
 
-        {/* User filter */}
         <div className="chip-row">
           <button
             className={`chip${filterUserId === 'all' ? ' active' : ''}`}
@@ -59,43 +81,62 @@ export function Ratings() {
           </div>
         ) : (
           <div className="section">
-            {moviesWithStats.map(({ movie, avg, count }, idx) => (
-              <div key={movie.id} className="movie-card" onClick={() => setSelected(movie)}>
-                <div className={`rank rank--${idx + 1}`} style={{ fontSize: 15 }}>
-                  {idx < 3 ? idx + 1 : ''}
-                </div>
-                <MoviePoster posterUrl={movie.posterUrl} title={movie.title} size="sm" />
-                <div className="movie-info">
-                  <div className="movie-title">{movie.title}</div>
-                  <div className="movie-meta">
-                    {[movie.year, movie.genre].filter(Boolean).join(' · ')}
+            {moviesWithStats.map(({ movie, avg, count }, idx) => {
+              const showRateBtn = isMyFilter && activeUserId && !ratedByMe.has(movie.id)
+              const ranked = avg !== null && filterUserId === 'all'
+              return (
+                <div key={movie.id} className="movie-card" onClick={() => setSelected(movie)}>
+                  {ranked && (
+                    <div className={`rank rank--${idx + 1}`} style={{ fontSize: 15 }}>
+                      {idx < 3 ? idx + 1 : ''}
+                    </div>
+                  )}
+                  <MoviePoster posterUrl={movie.posterUrl} title={movie.title} size="sm" />
+                  <div className="movie-info">
+                    <div className="movie-title">{movie.title}</div>
+                    <div className="movie-meta">
+                      {[movie.year, movie.genre].filter(Boolean).join(' · ')}
+                    </div>
+                    {filterUserId === 'all' && (
+                      <div style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
+                        {count} rating{count !== 1 ? 's' : ''}
+                      </div>
+                    )}
                   </div>
-                  <div style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
-                    {count} rating{count !== 1 ? 's' : ''}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
+                    <div style={{
+                      fontWeight: 800,
+                      fontSize: avg !== null ? 24 : 18,
+                      color: avg === null ? 'var(--color-text-muted)' :
+                        avg >= 8 ? 'var(--color-success)' :
+                        avg >= 5 ? 'var(--color-accent)' :
+                        'var(--color-danger)'
+                    }}>
+                      {avg ?? '—'}
+                    </div>
+                    {showRateBtn && (
+                      <button
+                        className="btn btn--sm btn--ghost"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--color-primary)' }}
+                        onClick={e => { e.stopPropagation(); setRatingMovie(movie) }}
+                      >
+                        <IconStar size={13} filled /> Rate
+                      </button>
+                    )}
                   </div>
                 </div>
-                <div style={{
-                  fontWeight: 800,
-                  fontSize: avg !== null ? 24 : 18,
-                  color: avg === null ? 'var(--color-text-muted)' :
-                    avg >= 8 ? 'var(--color-success)' :
-                    avg >= 5 ? 'var(--color-accent)' :
-                    'var(--color-danger)'
-                }}>
-                  {avg ?? '—'}
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
 
-        {/* Per-user breakdown if viewing all */}
         {filterUserId === 'all' && users.length > 1 && ratings.length > 0 && (
           <UserBreakdown />
         )}
       </div>
 
       {selected && <MovieDetailSheet movie={selected} onClose={() => setSelected(null)} />}
+      {ratingMovie && <RateMovieSheet movie={ratingMovie} onClose={() => setRatingMovie(null)} />}
     </div>
   )
 }

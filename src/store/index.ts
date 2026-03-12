@@ -95,17 +95,19 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   addMovie(fields) {
+    const id = uid()
     const movie: Movie = {
       ...fields,
-      id: uid(),
+      id,
       addedAt: new Date().toISOString(),
-      watched: false,
-      watchedAt: null,
+      watched: fields.watched ?? false,
+      watchedAt: fields.watchedAt ?? null,
       attendees: [],
     }
     const movies = [...get().movies, movie]
     set({ movies, lastModified: touch() })
     save(LS.movies, movies)
+    return id
   },
 
   updateMovie(id, patch) {

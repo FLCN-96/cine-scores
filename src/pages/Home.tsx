@@ -20,25 +20,28 @@ export function Home() {
   const activeUser = users.find(u => u.id === activeUserId)
 
   const { rateThese, comingUp, proposed } = useMemo(() => {
-    const unwatched = movies.filter(m => !m.watched)
     const ratedMovieIds = new Set(
       ratings.filter(r => r.userId === activeUserId).map(r => r.movieId)
     )
 
-    const rateThese = unwatched.filter(m =>
-      m.scheduledDate &&
-      m.scheduledDate < TODAY &&
-      activeUserId &&
-      (m.attendees ?? []).includes(activeUserId) &&
-      !ratedMovieIds.has(m.id)
-    ).sort((a, b) => new Date(b.scheduledDate!).getTime() - new Date(a.scheduledDate!).getTime())
+    // Rate these: watched movies OR past-date events, not yet rated by active user
+    const rateThese = movies.filter(m => {
+      if (!activeUserId || ratedMovieIds.has(m.id)) return false
+      return m.watched || (m.scheduledDate !== null && m.scheduledDate < TODAY)
+    }).sort((a, b) => {
+      const aDate = a.watchedAt ?? a.scheduledDate ?? a.addedAt
+      const bDate = b.watchedAt ?? b.scheduledDate ?? b.addedAt
+      return new Date(bDate).getTime() - new Date(aDate).getTime()
+    })
 
-    const comingUp = unwatched.filter(m =>
-      m.scheduledDate && m.scheduledDate >= TODAY
+    // Coming up: future-scheduled, not watched
+    const comingUp = movies.filter(m =>
+      !m.watched && m.scheduledDate !== null && m.scheduledDate >= TODAY
     ).sort((a, b) => new Date(a.scheduledDate!).getTime() - new Date(b.scheduledDate!).getTime())
 
-    const proposed = unwatched.filter(m =>
-      !m.scheduledDate
+    // Proposed: no date, not watched
+    const proposed = movies.filter(m =>
+      !m.watched && !m.scheduledDate
     ).sort((a, b) => new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime())
 
     return { rateThese, comingUp, proposed }
@@ -58,10 +61,10 @@ export function Home() {
           color: going ? undefined : 'var(--color-text-secondary)',
         }}
         onClick={e => { e.stopPropagation(); if (activeUserId) toggleAttendance(movie.id) }}
-        title={going ? "I'm going (tap to remove)" : "I'm going"}
+        title={going ? "Remove attendance" : "Mark as attending"}
       >
         <IconAttend size={14} />
-        {going ? "Going ✓" : "Going?"}
+        {going ? 'Going ✓' : 'Going?'}
       </button>
     )
   }
@@ -81,10 +84,6 @@ export function Home() {
         })}
       </div>
     )
-  }
-
-  if (ratingMovie) {
-    return <RateMovieSheet movie={ratingMovie} onClose={() => setRatingMovie(null)} />
   }
 
   return (
@@ -114,7 +113,7 @@ export function Home() {
           </div>
         </div>
 
-        {/* Rate These — past date + attended, not yet rated */}
+        {/* Rate These — watched or past events not yet rated by active user */}
         {rateThese.length > 0 && (
           <div className="section">
             <div className="section-title" style={{ color: 'var(--color-accent)' }}>Rate These</div>
@@ -203,12 +202,13 @@ export function Home() {
         {movies.length > 0 && rateThese.length === 0 && comingUp.length === 0 && proposed.length === 0 && (
           <div className="empty-state">
             <div className="empty-state__icon"><IconFilm size={44} /></div>
-            <div className="empty-state__text">All caught up! Head to Movies to see watched films.</div>
+            <div className="empty-state__text">All caught up!</div>
           </div>
         )}
       </div>
 
       {selected && <MovieDetailSheet movie={selected} onClose={() => setSelected(null)} />}
+      {ratingMovie && <RateMovieSheet movie={ratingMovie} onClose={() => setRatingMovie(null)} />}
     </div>
   )
 }
