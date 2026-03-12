@@ -23,33 +23,43 @@ function UserSheet({ title, initial, onSave, onClose, submitLabel = 'Save' }: Us
 
   return (
     <div className="overlay" onClick={onClose}>
-      <div className="sheet" onClick={e => e.stopPropagation()}>
-        <div className="sheet-handle" />
-        <div className="sheet-title">{title}</div>
-        <form onSubmit={e => { e.preventDefault(); if (name.trim()) onSave({ name: name.trim(), color }) }}>
-          <div className="form-group">
-            <label>Name</label>
-            <input autoFocus value={name} onChange={e => setName(e.target.value)} placeholder="Your name" />
-          </div>
-          <div className="form-group">
-            <label>Color</label>
-            <div className="color-picker">
-              {COLORS.map(c => (
-                <button
-                  key={c}
-                  type="button"
-                  className={`color-swatch${color === c ? ' selected' : ''}`}
-                  style={{ background: c }}
-                  onClick={() => setColor(c)}
-                />
-              ))}
+      <div className="sheet sheet--detail" onClick={e => e.stopPropagation()}>
+
+        <div className="sheet-topbar">
+          <div className="sheet-handle" style={{ margin: 0 }} />
+          <div className="sheet-title" style={{ marginTop: 'var(--space-sm)', marginBottom: 0 }}>{title}</div>
+        </div>
+
+        <div className="sheet-body">
+          <form id="user-sheet-form" onSubmit={e => { e.preventDefault(); if (name.trim()) onSave({ name: name.trim(), color }) }}>
+            <div className="form-group">
+              <label>Name</label>
+              <input autoFocus value={name} onChange={e => setName(e.target.value)} placeholder="Your name" />
             </div>
-          </div>
+            <div className="form-group">
+              <label>Color</label>
+              <div className="color-picker">
+                {COLORS.map(c => (
+                  <button
+                    key={c}
+                    type="button"
+                    className={`color-swatch${color === c ? ' selected' : ''}`}
+                    style={{ background: c }}
+                    onClick={() => setColor(c)}
+                  />
+                ))}
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <div className="sheet-footer">
           <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
             <button type="button" className="btn btn--secondary btn--full" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn btn--primary btn--full" disabled={!name.trim()}>{submitLabel}</button>
+            <button type="submit" form="user-sheet-form" className="btn btn--primary btn--full" disabled={!name.trim()}>{submitLabel}</button>
           </div>
-        </form>
+        </div>
+
       </div>
     </div>
   )

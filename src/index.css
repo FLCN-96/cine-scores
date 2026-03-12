@@ -483,6 +483,7 @@ img { display: block; max-width: 100%; }
   overflow: hidden;
   padding: 0;
   padding-bottom: 0;
+  height: 92dvh;
 }
 
 .sheet-topbar {
