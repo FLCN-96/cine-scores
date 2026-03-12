@@ -45,7 +45,13 @@ async function ghPush(pat: string, owner: string, repo: string, branch: string, 
       body: JSON.stringify(body),
     }
   )
-  if (!res.ok) throw new Error(`GitHub push failed: ${res.status}`)
+  if (!res.ok) {
+    if (res.status === 404) throw new Error(`Repo "${owner}/${repo}" not found (404) — check your owner/repo name and that the repo exists`)
+    if (res.status === 401) throw new Error('Invalid PAT (401) — check your Personal Access Token')
+    if (res.status === 403) throw new Error('PAT lacks repo write permission (403) — enable Contents read+write')
+    if (res.status === 422) throw new Error('SHA conflict (422) — try syncing again to refresh')
+    throw new Error(`GitHub push failed: ${res.status}`)
+  }
 }
 
 function mergeData(local: RemoteData, remote: RemoteData, deletedUserIds: string[], deletedMovieIds: string[], deletedRatingIds: string[]): RemoteData {
@@ -81,10 +87,12 @@ function mergeData(local: RemoteData, remote: RemoteData, deletedUserIds: string
 }
 
 export function useSync() {
-  const { syncConfig, users, movies, ratings, deletedUserIds, deletedMovieIds, deletedRatingIds, replaceAll, setSyncConfig } = useStore()
+  const { syncConfig, users, movies, ratings, deletedUserIds, deletedMovieIds, deletedRatingIds, replaceAll, setSyncConfig, lastModified } = useStore()
   const [syncing, setSyncing] = useState(false)
   const [lastSynced, setLastSynced] = useState<string | null>(() => localStorage.getItem('cine-scores:lastSynced'))
   const [error, setError] = useState<string | null>(null)
+
+  const isDirty = !!lastModified
 
   const sync = useCallback(async () => {
     if (!syncConfig || syncing) return
@@ -137,5 +145,5 @@ export function useSync() {
     }
   }, [syncConfig, users, movies, ratings, deletedUserIds, deletedMovieIds, deletedRatingIds, replaceAll])
 
-  return { sync, syncing, lastSynced, error, syncConfig, setSyncConfig }
+  return { sync, syncing, lastSynced, error, syncConfig, setSyncConfig, isDirty }
 }

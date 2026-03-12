@@ -48,6 +48,7 @@ export interface AppState {
   deletedMovieIds: string[]
   deletedRatingIds: string[]
   hydrated: boolean
+  lastModified: string | null
 
   // User actions
   addUser: (user: Omit<User, 'id' | 'createdAt'>) => void
