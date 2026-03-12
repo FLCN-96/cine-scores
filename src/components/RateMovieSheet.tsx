@@ -96,13 +96,14 @@ export function RateMovieSheet({ movie, onClose }: Props) {
 
       <div className="sheet-footer">
         <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
-          <button type="button" className="btn btn--secondary btn--full" onClick={onClose}>
+          <button type="button" className="btn btn--secondary btn--full" style={{ flex: 1 }} onClick={onClose}>
             Cancel
           </button>
           <button
             type="submit"
             form="rate-movie-form"
             className={`btn btn--full ${saved ? 'btn--saved' : 'btn--primary'}`}
+            style={{ flex: 1 }}
             disabled={!activeUserId}
           >
             {saved ? (
