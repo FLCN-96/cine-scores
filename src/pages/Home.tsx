@@ -3,6 +3,7 @@ import { useStore } from '../store'
 import { useHomeStats } from '../hooks/useMovieStats'
 import { MoviePoster } from '../components/MoviePoster'
 import { MovieDetailSheet } from '../components/MovieDetailSheet'
+import { IconFilm, IconCalendar } from '../components/Icons'
 import type { Movie } from '../types'
 
 function formatDate(d: string) {
@@ -22,7 +23,7 @@ export function Home() {
       <div className="page">
         <div className="page-header">
           <div>
-            <div className="page-title">CineScores 🎬</div>
+            <div className="page-title">CineScores</div>
             {activeUser && (
               <div className="page-subtitle">Hey, {activeUser.name}!</div>
             )}
@@ -54,7 +55,9 @@ export function Home() {
                   <div className="movie-title">{m.title}</div>
                   <div className="movie-meta">{[m.year, m.genre].filter(Boolean).join(' · ')}</div>
                   {m.scheduledDate && (
-                    <div className="movie-scheduled">📅 {formatDate(m.scheduledDate)}</div>
+                    <div className="movie-scheduled" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <IconCalendar size={12} />{formatDate(m.scheduledDate)}
+                    </div>
                   )}
                 </div>
               </div>
@@ -111,7 +114,7 @@ export function Home() {
 
         {allMovies.length === 0 && (
           <div className="empty-state">
-            <div className="empty-state__icon">🎬</div>
+            <div className="empty-state__icon"><IconFilm size={44} /></div>
             <div className="empty-state__text">No movies yet.<br />Head to Upcoming to add your first one!</div>
           </div>
         )}

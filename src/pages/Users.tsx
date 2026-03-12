@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../store'
+import { IconUsers } from '../components/Icons'
 import type { User } from '../types'
 
 const COLORS = [
@@ -74,7 +75,7 @@ export function Users() {
 
         {users.length === 0 && (
           <div className="empty-state">
-            <div className="empty-state__icon">👥</div>
+            <div className="empty-state__icon"><IconUsers size={44} /></div>
             <div className="empty-state__text">Add your friend group to get started!</div>
           </div>
         )}

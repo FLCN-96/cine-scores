@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useSync } from '../hooks/useSync'
 import { useStore } from '../store'
+import { IconSync, IconCheck } from '../components/Icons'
 import type { SyncConfig } from '../types'
 
 function formatTs(ts: string | null) {
@@ -91,7 +92,13 @@ export function Settings() {
             disabled={syncing}
             style={{ marginBottom: 'var(--space-md)' }}
           >
-            {syncing ? '⟳ Syncing…' : saved ? '✓ Synced!' : '↕ Sync Now'}
+            {syncing ? (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><IconSync size={15} />Syncing…</span>
+            ) : saved ? (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><IconCheck size={15} />Synced!</span>
+            ) : (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><IconSync size={15} />Sync Now</span>
+            )}
           </button>
         )}
 
@@ -165,7 +172,9 @@ export function Settings() {
               type="submit"
               className={`btn btn--full ${tmdbSaved ? 'btn--saved' : 'btn--primary'}`}
             >
-              {tmdbSaved ? '✓ Saved!' : tmdbApiKey ? 'Update Key' : 'Save Key'}
+              {tmdbSaved ? (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><IconCheck size={14} />Saved!</span>
+              ) : tmdbApiKey ? 'Update Key' : 'Save Key'}
             </button>
           </form>
         </div>
