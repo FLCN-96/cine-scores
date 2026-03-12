@@ -90,12 +90,11 @@ export function AddMovieSheet({ onClose }: Props) {
   }
 
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet sheet--detail" onClick={e => e.stopPropagation()}>
+    <div className="overlay overlay--center" onClick={onClose}>
+      <div className="modal-dialog" onClick={e => e.stopPropagation()}>
 
         <div className="sheet-topbar">
-          <div className="sheet-handle" style={{ margin: 0 }} />
-          <div className="sheet-title" style={{ marginTop: 'var(--space-sm)', marginBottom: 0 }}>Add Movie</div>
+          <div className="sheet-title" style={{ marginBottom: 0 }}>Add Movie</div>
         </div>
 
         <div className="sheet-body">
