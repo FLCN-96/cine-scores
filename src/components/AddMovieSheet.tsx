@@ -117,7 +117,13 @@ export function AddMovieSheet({ onClose }: Props) {
                         className="tmdb-suggestion__poster"
                       />
                     ) : (
-                      <div className="tmdb-suggestion__poster tmdb-suggestion__poster--empty">🎬</div>
+                      <div className="tmdb-suggestion__poster tmdb-suggestion__poster--empty">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={{ width: '55%', height: '55%', opacity: 0.3 }}>
+                          <rect x="2" y="2" width="20" height="20" rx="2" />
+                          <line x1="7" y1="2" x2="7" y2="22" /><line x1="17" y1="2" x2="17" y2="22" />
+                          <line x1="2" y1="12" x2="22" y2="12" />
+                        </svg>
+                      </div>
                     )}
                     <div className="tmdb-suggestion__info">
                       <div className="tmdb-suggestion__title">{s.title}</div>

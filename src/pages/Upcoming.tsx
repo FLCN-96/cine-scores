@@ -4,6 +4,7 @@ import { MoviePoster } from '../components/MoviePoster'
 import { MovieDetailSheet } from '../components/MovieDetailSheet'
 import { AddMovieSheet } from '../components/AddMovieSheet'
 import { useAllMovieStats } from '../hooks/useMovieStats'
+import { IconCalendar, IconClipboard, IconEye, IconCheck } from '../components/Icons'
 import type { Movie } from '../types'
 
 type Filter = 'upcoming' | 'watched' | 'unscheduled'
@@ -58,9 +59,13 @@ export function Upcoming() {
               className={`chip${filter === f ? ' active' : ''}`}
               onClick={() => setFilter(f)}
             >
-              {f === 'upcoming' ? `📅 Scheduled (${counts.upcoming})` :
-               f === 'unscheduled' ? `📋 Backlog (${counts.unscheduled})` :
-               `✅ Watched (${counts.watched})`}
+              {f === 'upcoming' ? (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><IconCalendar size={12} />Scheduled ({counts.upcoming})</span>
+              ) : f === 'unscheduled' ? (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><IconClipboard size={12} />Backlog ({counts.unscheduled})</span>
+              ) : (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><IconEye size={12} />Watched ({counts.watched})</span>
+              )}
             </button>
           ))}
         </div>
@@ -68,7 +73,7 @@ export function Upcoming() {
         {filtered.length === 0 ? (
           <div className="empty-state">
             <div className="empty-state__icon">
-              {filter === 'upcoming' ? '📅' : filter === 'unscheduled' ? '📋' : '✅'}
+              {filter === 'upcoming' ? <IconCalendar size={44} /> : filter === 'unscheduled' ? <IconClipboard size={44} /> : <IconEye size={44} />}
             </div>
             <div className="empty-state__text">
               {filter === 'upcoming' ? 'No scheduled movies yet.' :
@@ -87,10 +92,14 @@ export function Upcoming() {
                     <div className="movie-title">{m.title}</div>
                     <div className="movie-meta">{[m.year, m.genre].filter(Boolean).join(' · ')}</div>
                     {m.scheduledDate && !m.watched && (
-                      <div className="movie-scheduled">📅 {formatDate(m.scheduledDate)}</div>
+                      <div className="movie-scheduled" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <IconCalendar size={12} />{formatDate(m.scheduledDate)}
+                      </div>
                     )}
                     {m.watched && (
-                      <span className="movie-watched-badge">✓ Watched</span>
+                      <span className="movie-watched-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                        <IconCheck size={11} />Watched
+                      </span>
                     )}
                   </div>
                   {stats.avg !== null && (
