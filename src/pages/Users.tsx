@@ -48,6 +48,15 @@ function UserSheet({ title, initial, onSave, onClose, submitLabel = 'Save' }: Us
                   />
                 ))}
               </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', marginTop: 'var(--space-sm)' }}>
+                <div style={{ width: 28, height: 28, borderRadius: 'var(--radius-sm)', background: /^#[0-9a-fA-F]{6}$/.test(color) ? color : 'transparent', border: '2px solid var(--color-border)', flexShrink: 0 }} />
+                <input
+                  value={color}
+                  onChange={e => setColor(e.target.value)}
+                  placeholder="#e74c3c"
+                  style={{ fontFamily: 'monospace', letterSpacing: '0.05em' }}
+                />
+              </div>
             </div>
           </form>
         </div>
