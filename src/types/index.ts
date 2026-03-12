@@ -57,7 +57,7 @@ export interface AppState {
   setActiveUser: (id: string) => void
 
   // Movie actions
-  addMovie: (movie: Omit<Movie, 'id' | 'addedAt' | 'watched' | 'watchedAt' | 'attendees'>) => void
+  addMovie: (movie: Omit<Movie, 'id' | 'addedAt' | 'attendees'> & { watched?: boolean; watchedAt?: string | null }) => string
   updateMovie: (id: string, patch: Partial<Omit<Movie, 'id'>>) => void
   deleteMovie: (id: string) => void
   markWatched: (id: string) => void

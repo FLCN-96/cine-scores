@@ -3,7 +3,7 @@ import { IconHome, IconFilm, IconStar, IconUsers, IconSettings } from './Icons'
 
 const TABS = [
   { to: '/', Icon: IconHome, label: 'Home', end: true },
-  { to: '/upcoming', Icon: IconFilm, label: 'Upcoming' },
+  { to: '/upcoming', Icon: IconFilm, label: 'Movies' },
   { to: '/ratings', Icon: IconStar, label: 'Ratings' },
   { to: '/users', Icon: IconUsers, label: 'Users' },
   { to: '/settings', Icon: IconSettings, label: 'Settings' },

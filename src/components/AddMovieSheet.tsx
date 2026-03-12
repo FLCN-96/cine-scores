@@ -21,20 +21,28 @@ interface TmdbResult {
   genre_ids: number[]
 }
 
+type Status = 'upcoming' | 'watched' | 'unplanned'
+
 const TODAY = new Date().toISOString().split('T')[0]
 const CURRENT_YEAR = new Date().getFullYear().toString()
 
 export function AddMovieSheet({ onClose }: Props) {
-  const { addMovie, activeUserId, tmdbApiKey } = useStore()
+  const { addMovie, addRating, activeUserId, tmdbApiKey } = useStore()
 
+  const [status, setStatus] = useState<Status>('upcoming')
   const [title, setTitle] = useState('')
   const [year, setYear] = useState(CURRENT_YEAR)
   const [genre, setGenre] = useState('')
   const [description, setDescription] = useState('')
   const [posterUrl, setPosterUrl] = useState('')
-  const [scheduledDate, setScheduledDate] = useState(TODAY)
-  const [unplanned, setUnplanned] = useState(false)
+  const [watchDate, setWatchDate] = useState(TODAY)
   const [tmdbId, setTmdbId] = useState<number | null>(null)
+
+  // Rating fields — only used when status === 'watched'
+  const [score, setScore] = useState(7)
+  const [hovered, setHovered] = useState<number | null>(null)
+  const [review, setReview] = useState('')
+  const [includeRating, setIncludeRating] = useState(false)
 
   const [suggestions, setSuggestions] = useState<TmdbResult[]>([])
   const [searching, setSearching] = useState(false)
@@ -68,8 +76,7 @@ export function AddMovieSheet({ onClose }: Props) {
     setYear(result.release_date ? result.release_date.slice(0, 4) : CURRENT_YEAR)
     setPosterUrl(result.poster_path ? `https://image.tmdb.org/t/p/w500${result.poster_path}` : '')
     setDescription(result.overview ?? '')
-    const mappedGenre = TMDB_GENRE_MAP[result.genre_ids[0]] ?? ''
-    setGenre(mappedGenre)
+    setGenre(TMDB_GENRE_MAP[result.genre_ids[0]] ?? '')
     setTmdbId(result.id)
     setSuggestions([])
   }
@@ -77,18 +84,33 @@ export function AddMovieSheet({ onClose }: Props) {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!title.trim()) return
-    addMovie({
+
+    const isWatched = status === 'watched'
+    const newId = addMovie({
       title: title.trim(),
       year: year ? parseInt(year) : null,
       genre,
       description,
       posterUrl,
-      scheduledDate: unplanned ? null : (scheduledDate || null),
+      scheduledDate: status === 'unplanned' ? null : (watchDate || null),
       addedBy: activeUserId ?? '',
       tmdbId,
+      watched: isWatched,
+      watchedAt: isWatched ? (watchDate || TODAY) : null,
     })
+
+    if (isWatched && includeRating && activeUserId) {
+      addRating({ movieId: newId, userId: activeUserId, score, review })
+    }
+
     onClose()
   }
+
+  const displayScore = hovered ?? score
+  const scoreColor =
+    displayScore >= 8 ? 'var(--color-success)' :
+    displayScore >= 5 ? 'var(--color-accent)' :
+    'var(--color-danger)'
 
   return (
     <div className="overlay overlay--center" onClick={onClose}>
@@ -99,6 +121,20 @@ export function AddMovieSheet({ onClose }: Props) {
         </div>
 
         <div className="sheet-body">
+          {/* Status toggle */}
+          <div className="seg-control">
+            {(['watched', 'upcoming', 'unplanned'] as Status[]).map(s => (
+              <button
+                key={s}
+                type="button"
+                className={`seg-control__btn${status === s ? ' active' : ''}`}
+                onClick={() => setStatus(s)}
+              >
+                {s === 'watched' ? 'Watched' : s === 'upcoming' ? 'Upcoming' : 'Unplanned'}
+              </button>
+            ))}
+          </div>
+
           <form id="add-movie-form" onSubmit={handleSubmit}>
 
             {/* Title + TMDB search */}
@@ -207,27 +243,61 @@ export function AddMovieSheet({ onClose }: Props) {
               </div>
             )}
 
-            <div className="form-group">
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: unplanned ? 0 : 'var(--space-xs)' }}>
-                <label style={{ marginBottom: 0 }}>Watch Date</label>
-                <button
-                  type="button"
-                  className={`btn btn--sm${unplanned ? ' btn--secondary' : ' btn--ghost'}`}
-                  style={{ fontSize: 12 }}
-                  onClick={() => setUnplanned(u => !u)}
-                >
-                  {unplanned ? 'Unplanned ✓' : 'Unplanned'}
-                </button>
-              </div>
-              {!unplanned && (
+            {/* Date — only for upcoming and watched */}
+            {status !== 'unplanned' && (
+              <div className="form-group">
+                <label>{status === 'watched' ? 'Watch Date' : 'Scheduled Date'}</label>
                 <input
                   type="date"
-                  value={scheduledDate}
-                  onChange={e => setScheduledDate(e.target.value)}
+                  value={watchDate}
+                  onChange={e => setWatchDate(e.target.value)}
                   style={{ maxWidth: 180 }}
                 />
-              )}
-            </div>
+              </div>
+            )}
+
+            {/* Inline rating — only for watched */}
+            {status === 'watched' && (
+              <div className="form-group">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-sm)' }}>
+                  <label style={{ marginBottom: 0 }}>Add Your Rating</label>
+                  <button
+                    type="button"
+                    className={`btn btn--sm${includeRating ? ' btn--secondary' : ' btn--ghost'}`}
+                    style={{ fontSize: 12 }}
+                    onClick={() => setIncludeRating(r => !r)}
+                  >
+                    {includeRating ? 'On ✓' : 'Off'}
+                  </button>
+                </div>
+                {includeRating && (
+                  <>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)', marginBottom: 'var(--space-sm)' }}>
+                      <div className="star-row">
+                        {Array.from({ length: 10 }, (_, i) => i + 1).map(n => (
+                          <span
+                            key={n}
+                            className={`star${n <= displayScore ? ' filled' : ''}`}
+                            onMouseEnter={() => setHovered(n)}
+                            onMouseLeave={() => setHovered(null)}
+                            onClick={() => setScore(n)}
+                          >★</span>
+                        ))}
+                      </div>
+                      <div className="score-display" style={{ color: scoreColor, minWidth: 36 }}>
+                        {displayScore}
+                      </div>
+                    </div>
+                    <textarea
+                      value={review}
+                      onChange={e => setReview(e.target.value)}
+                      placeholder="Review (optional)"
+                      rows={2}
+                    />
+                  </>
+                )}
+              </div>
+            )}
 
           </form>
         </div>
@@ -238,7 +308,7 @@ export function AddMovieSheet({ onClose }: Props) {
               Cancel
             </button>
             <button type="submit" form="add-movie-form" className="btn btn--primary btn--full" disabled={!title.trim()}>
-              Add Movie
+              {status === 'watched' ? 'Add Watched' : status === 'upcoming' ? 'Add Movie' : 'Add to Backlog'}
             </button>
           </div>
         </div>
