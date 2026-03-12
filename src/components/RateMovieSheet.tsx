@@ -12,10 +12,12 @@ export function RateMovieSheet({ movie, onClose }: Props) {
   const { addRating, ratings, activeUserId, users } = useStore()
   const existing = ratings.find(r => r.movieId === movie.id && r.userId === activeUserId)
   const [score, setScore] = useState(existing?.score ?? 7)
+  const [hovered, setHovered] = useState<number | null>(null)
   const [review, setReview] = useState(existing?.review ?? '')
   const [saved, setSaved] = useState(false)
 
   const activeUser = users.find(u => u.id === activeUserId)
+  const displayScore = hovered ?? score
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -26,8 +28,8 @@ export function RateMovieSheet({ movie, onClose }: Props) {
   }
 
   const scoreColor =
-    score >= 8 ? 'var(--color-success)' :
-    score >= 5 ? 'var(--color-accent)' :
+    displayScore >= 8 ? 'var(--color-success)' :
+    displayScore >= 5 ? 'var(--color-accent)' :
     'var(--color-danger)'
 
   return (
@@ -57,16 +59,20 @@ export function RateMovieSheet({ movie, onClose }: Props) {
 
             <div className="form-group">
               <label>Rating as {activeUser?.name ?? '—'}</label>
-              <div className="score-slider-row">
-                <input
-                  type="range"
-                  min={1}
-                  max={10}
-                  value={score}
-                  onChange={e => setScore(Number(e.target.value))}
-                />
-                <div className="score-display" style={{ color: scoreColor }}>
-                  {score}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)', marginTop: 'var(--space-xs)' }}>
+                <div className="star-row">
+                  {Array.from({ length: 10 }, (_, i) => i + 1).map(n => (
+                    <span
+                      key={n}
+                      className={`star${n <= displayScore ? ' filled' : ''}`}
+                      onMouseEnter={() => setHovered(n)}
+                      onMouseLeave={() => setHovered(null)}
+                      onClick={() => setScore(n)}
+                    >★</span>
+                  ))}
+                </div>
+                <div className="score-display" style={{ color: scoreColor, minWidth: 36 }}>
+                  {displayScore}
                 </div>
               </div>
             </div>

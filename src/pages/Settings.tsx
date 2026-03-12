@@ -10,14 +10,18 @@ function formatTs(ts: string | null) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
+function parseRepoSlug(slug: string): { owner: string; repo: string } | null {
+  const parts = slug.trim().split('/')
+  if (parts.length !== 2 || !parts[0] || !parts[1]) return null
+  return { owner: parts[0], repo: parts[1] }
+}
+
 export function Settings() {
   const { sync, syncing, lastSynced, error, syncConfig, setSyncConfig } = useSync()
   const { tmdbApiKey, setTmdbApiKey } = useStore()
   const [editing, setEditing] = useState(false)
   const [pat, setPat] = useState(syncConfig?.pat ?? '')
-  const [owner, setOwner] = useState(syncConfig?.owner ?? '')
-  const [repo, setRepo] = useState(syncConfig?.repo ?? '')
-  const [branch, setBranch] = useState(syncConfig?.branch ?? 'main')
+  const [repoSlug, setRepoSlug] = useState(syncConfig ? `${syncConfig.owner}/${syncConfig.repo}` : '')
   const [saved, setSaved] = useState(false)
   const [confirmClear, setConfirmClear] = useState(false)
   const [tmdbKey, setTmdbKey] = useState(tmdbApiKey ?? '')
@@ -32,8 +36,9 @@ export function Settings() {
 
   function handleSave(e: React.FormEvent) {
     e.preventDefault()
-    if (!pat.trim() || !owner.trim() || !repo.trim()) return
-    const config: SyncConfig = { pat: pat.trim(), owner: owner.trim(), repo: repo.trim(), branch: branch.trim() || 'main' }
+    const parsed = parseRepoSlug(repoSlug)
+    if (!pat.trim() || !parsed) return
+    const config: SyncConfig = { pat: pat.trim(), owner: parsed.owner, repo: parsed.repo, branch: syncConfig?.branch ?? 'main' }
     setSyncConfig(config)
     setSaved(true)
     setEditing(false)
@@ -43,13 +48,12 @@ export function Settings() {
   function handleClear() {
     setSyncConfig(null)
     setPat('')
-    setOwner('')
-    setRepo('')
-    setBranch('main')
+    setRepoSlug('')
     setConfirmClear(false)
   }
 
   const isConfigured = !!syncConfig
+  const slugValid = !!parseRepoSlug(repoSlug)
 
   return (
     <div className="app-content">
@@ -64,7 +68,7 @@ export function Settings() {
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 600 }}>GitHub Sync</div>
             <div style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
-              {isConfigured ? `${syncConfig.owner}/${syncConfig.repo} · ${syncConfig.branch}` : 'Not configured'}
+              {isConfigured ? `${syncConfig.owner}/${syncConfig.repo}` : 'Not configured'}
             </div>
           </div>
         </div>
@@ -121,16 +125,13 @@ export function Settings() {
                 />
               </div>
               <div className="form-group">
-                <label>Owner (username or org)</label>
-                <input value={owner} onChange={e => setOwner(e.target.value)} placeholder="your-username" />
-              </div>
-              <div className="form-group">
                 <label>Repository</label>
-                <input value={repo} onChange={e => setRepo(e.target.value)} placeholder="cine-scores-data" />
-              </div>
-              <div className="form-group">
-                <label>Branch</label>
-                <input value={branch} onChange={e => setBranch(e.target.value)} placeholder="main" />
+                <input
+                  value={repoSlug}
+                  onChange={e => setRepoSlug(e.target.value)}
+                  placeholder="username/repo-name"
+                  autoComplete="off"
+                />
               </div>
               <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
                 {editing && (
@@ -138,7 +139,7 @@ export function Settings() {
                     Cancel
                   </button>
                 )}
-                <button type="submit" className="btn btn--primary btn--full" disabled={!pat.trim() || !owner.trim() || !repo.trim()}>
+                <button type="submit" className="btn btn--primary btn--full" disabled={!pat.trim() || !slugValid}>
                   Save Config
                 </button>
               </div>
