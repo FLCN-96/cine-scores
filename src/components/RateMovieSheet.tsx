@@ -38,8 +38,8 @@ export function RateMovieSheet({ movie, onClose }: Props) {
           <div className="sheet-handle" style={{ margin: 0 }} />
         </div>
 
-        <form onSubmit={handleSubmit} style={{ display: 'contents' }}>
-          <div className="sheet-body">
+        <div className="sheet-body">
+          <form id="rate-movie-form" onSubmit={handleSubmit}>
 
             <div style={{ display: 'flex', gap: 'var(--space-md)', alignItems: 'center', marginBottom: 'var(--space-lg)' }}>
               <MoviePoster posterUrl={movie.posterUrl} title={movie.title} />
@@ -80,30 +80,31 @@ export function RateMovieSheet({ movie, onClose }: Props) {
               />
             </div>
 
-            <OtherRatings movieId={movie.id} excludeUserId={activeUserId ?? ''} />
+          </form>
 
-          </div>
+          <OtherRatings movieId={movie.id} excludeUserId={activeUserId ?? ''} />
+        </div>
 
-          <div className="sheet-footer">
-            <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
-              <button type="button" className="btn btn--secondary btn--full" onClick={onClose}>
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className={`btn btn--full ${saved ? 'btn--saved' : 'btn--primary'}`}
-                disabled={!activeUserId}
-              >
-                {saved ? (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                    <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-                    Saved!
-                  </span>
-                ) : existing ? 'Update Rating' : 'Save Rating'}
-              </button>
-            </div>
+        <div className="sheet-footer">
+          <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
+            <button type="button" className="btn btn--secondary btn--full" onClick={onClose}>
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="rate-movie-form"
+              className={`btn btn--full ${saved ? 'btn--saved' : 'btn--primary'}`}
+              disabled={!activeUserId}
+            >
+              {saved ? (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                  <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                  Saved!
+                </span>
+              ) : existing ? 'Update Rating' : 'Save Rating'}
+            </button>
           </div>
-        </form>
+        </div>
 
       </div>
     </div>

@@ -98,8 +98,8 @@ export function AddMovieSheet({ onClose }: Props) {
           <div className="sheet-title" style={{ marginTop: 'var(--space-sm)', marginBottom: 0 }}>Add Movie</div>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ display: 'contents' }}>
-          <div className="sheet-body">
+        <div className="sheet-body">
+          <form id="add-movie-form" onSubmit={handleSubmit}>
 
             {/* Title + TMDB search */}
             <div className="form-group" style={{ position: 'relative' }}>
@@ -216,19 +216,19 @@ export function AddMovieSheet({ onClose }: Props) {
               />
             </div>
 
-          </div>
+          </form>
+        </div>
 
-          <div className="sheet-footer">
-            <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
-              <button type="button" className="btn btn--secondary btn--full" onClick={onClose}>
-                Cancel
-              </button>
-              <button type="submit" className="btn btn--primary btn--full" disabled={!title.trim()}>
-                Add Movie
-              </button>
-            </div>
+        <div className="sheet-footer">
+          <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
+            <button type="button" className="btn btn--secondary btn--full" onClick={onClose}>
+              Cancel
+            </button>
+            <button type="submit" form="add-movie-form" className="btn btn--primary btn--full" disabled={!title.trim()}>
+              Add Movie
+            </button>
           </div>
-        </form>
+        </div>
 
       </div>
     </div>
