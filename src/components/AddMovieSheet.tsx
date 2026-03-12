@@ -91,135 +91,145 @@ export function AddMovieSheet({ onClose }: Props) {
 
   return (
     <div className="overlay" onClick={onClose}>
-      <div className="sheet" onClick={e => e.stopPropagation()}>
-        <div className="sheet-handle" />
-        <div className="sheet-title">Add Movie</div>
-        <form onSubmit={handleSubmit}>
+      <div className="sheet sheet--detail" onClick={e => e.stopPropagation()}>
 
-          {/* Title + TMDB search */}
-          <div className="form-group" style={{ position: 'relative' }}>
-            <label>Title *</label>
-            <input
-              autoFocus
-              value={title}
-              onChange={e => { setTitle(e.target.value); setTmdbId(null) }}
-              placeholder={tmdbApiKey ? 'Search for a movie…' : 'Movie title'}
-            />
-            {searching && <div className="tmdb-searching">Searching…</div>}
-            {suggestions.length > 0 && (
-              <div className="tmdb-suggestions">
-                {suggestions.map(s => (
-                  <div key={s.id} className="tmdb-suggestion" onMouseDown={() => selectSuggestion(s)}>
-                    {s.poster_path ? (
-                      <img
-                        src={`https://image.tmdb.org/t/p/w92${s.poster_path}`}
-                        alt={s.title}
-                        className="tmdb-suggestion__poster"
-                      />
-                    ) : (
-                      <div className="tmdb-suggestion__poster tmdb-suggestion__poster--empty">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={{ width: '55%', height: '55%', opacity: 0.3 }}>
-                          <rect x="2" y="2" width="20" height="20" rx="2" />
-                          <line x1="7" y1="2" x2="7" y2="22" /><line x1="17" y1="2" x2="17" y2="22" />
-                          <line x1="2" y1="12" x2="22" y2="12" />
-                        </svg>
-                      </div>
-                    )}
-                    <div className="tmdb-suggestion__info">
-                      <div className="tmdb-suggestion__title">{s.title}</div>
-                      {s.release_date && (
-                        <div className="tmdb-suggestion__year">{s.release_date.slice(0, 4)}</div>
+        <div className="sheet-topbar">
+          <div className="sheet-handle" style={{ margin: 0 }} />
+          <div className="sheet-title" style={{ marginTop: 'var(--space-sm)', marginBottom: 0 }}>Add Movie</div>
+        </div>
+
+        <form onSubmit={handleSubmit} style={{ display: 'contents' }}>
+          <div className="sheet-body">
+
+            {/* Title + TMDB search */}
+            <div className="form-group" style={{ position: 'relative' }}>
+              <label>Title *</label>
+              <input
+                autoFocus
+                value={title}
+                onChange={e => { setTitle(e.target.value); setTmdbId(null) }}
+                placeholder={tmdbApiKey ? 'Search for a movie…' : 'Movie title'}
+              />
+              {searching && <div className="tmdb-searching">Searching…</div>}
+              {suggestions.length > 0 && (
+                <div className="tmdb-suggestions">
+                  {suggestions.map(s => (
+                    <div key={s.id} className="tmdb-suggestion" onMouseDown={() => selectSuggestion(s)}>
+                      {s.poster_path ? (
+                        <img
+                          src={`https://image.tmdb.org/t/p/w92${s.poster_path}`}
+                          alt={s.title}
+                          className="tmdb-suggestion__poster"
+                        />
+                      ) : (
+                        <div className="tmdb-suggestion__poster tmdb-suggestion__poster--empty">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={{ width: '55%', height: '55%', opacity: 0.3 }}>
+                            <rect x="2" y="2" width="20" height="20" rx="2" />
+                            <line x1="7" y1="2" x2="7" y2="22" /><line x1="17" y1="2" x2="17" y2="22" />
+                            <line x1="2" y1="12" x2="22" y2="12" />
+                          </svg>
+                        </div>
                       )}
+                      <div className="tmdb-suggestion__info">
+                        <div className="tmdb-suggestion__title">{s.title}</div>
+                        {s.release_date && (
+                          <div className="tmdb-suggestion__year">{s.release_date.slice(0, 4)}</div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {!tmdbApiKey && (
+              <div className="tmdb-hint">
+                Add a TMDB API key in Settings to enable automatic poster &amp; metadata lookup.
               </div>
             )}
-          </div>
 
-          {!tmdbApiKey && (
-            <div className="tmdb-hint">
-              Add a TMDB API key in Settings to enable automatic poster &amp; metadata lookup.
-            </div>
-          )}
-
-          {/* Poster preview */}
-          {posterUrl && (
-            <div className="poster-preview">
-              <img src={posterUrl} alt="Poster preview" className="poster-preview__img" />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 600, marginBottom: 'var(--space-xs)' }}>{title}</div>
-                {year && <div style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>{year}</div>}
-                <button
-                  type="button"
-                  className="btn btn--ghost btn--sm"
-                  style={{ marginTop: 'var(--space-sm)', color: 'var(--color-danger)' }}
-                  onClick={() => setPosterUrl('')}
-                >
-                  Remove poster
-                </button>
+            {/* Poster preview */}
+            {posterUrl && (
+              <div className="poster-preview">
+                <img src={posterUrl} alt="Poster preview" className="poster-preview__img" />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, marginBottom: 'var(--space-xs)' }}>{title}</div>
+                  {year && <div style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>{year}</div>}
+                  <button
+                    type="button"
+                    className="btn btn--ghost btn--sm"
+                    style={{ marginTop: 'var(--space-sm)', color: 'var(--color-danger)' }}
+                    onClick={() => setPosterUrl('')}
+                  >
+                    Remove poster
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          <div className="form-group">
-            <label>Year</label>
-            <input
-              type="number"
-              value={year}
-              onChange={e => setYear(e.target.value)}
-              min="1900"
-              max="2099"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Genre</label>
-            <select value={genre} onChange={e => setGenre(e.target.value)}>
-              <option value="">Select genre…</option>
-              {GENRES.map(g => <option key={g} value={g}>{g}</option>)}
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label>Description</label>
-            <textarea
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-              placeholder="Brief description (optional)"
-            />
-          </div>
-
-          {!posterUrl && (
             <div className="form-group">
-              <label>Poster URL</label>
+              <label>Year</label>
               <input
-                type="url"
-                value={posterUrl}
-                onChange={e => setPosterUrl(e.target.value)}
-                placeholder="https://…"
+                type="number"
+                value={year}
+                onChange={e => setYear(e.target.value)}
+                min="1900"
+                max="2099"
               />
             </div>
-          )}
 
-          <div className="form-group">
-            <label>Watch Date</label>
-            <input
-              type="date"
-              value={scheduledDate}
-              onChange={e => setScheduledDate(e.target.value)}
-            />
+            <div className="form-group">
+              <label>Genre</label>
+              <select value={genre} onChange={e => setGenre(e.target.value)}>
+                <option value="">Select genre…</option>
+                {GENRES.map(g => <option key={g} value={g}>{g}</option>)}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Description</label>
+              <textarea
+                value={description}
+                onChange={e => setDescription(e.target.value)}
+                placeholder="Brief description (optional)"
+              />
+            </div>
+
+            {!posterUrl && (
+              <div className="form-group">
+                <label>Poster URL</label>
+                <input
+                  type="url"
+                  value={posterUrl}
+                  onChange={e => setPosterUrl(e.target.value)}
+                  placeholder="https://…"
+                />
+              </div>
+            )}
+
+            <div className="form-group">
+              <label>Watch Date</label>
+              <input
+                type="date"
+                value={scheduledDate}
+                onChange={e => setScheduledDate(e.target.value)}
+              />
+            </div>
+
           </div>
 
-          <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
-            <button type="button" className="btn btn--secondary btn--full" onClick={onClose}>
-              Cancel
-            </button>
-            <button type="submit" className="btn btn--primary btn--full" disabled={!title.trim()}>
-              Add Movie
-            </button>
+          <div className="sheet-footer">
+            <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
+              <button type="button" className="btn btn--secondary btn--full" onClick={onClose}>
+                Cancel
+              </button>
+              <button type="submit" className="btn btn--primary btn--full" disabled={!title.trim()}>
+                Add Movie
+              </button>
+            </div>
           </div>
         </form>
+
       </div>
     </div>
   )
