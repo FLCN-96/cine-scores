@@ -224,6 +224,7 @@ export function AddMovieSheet({ onClose }: Props) {
                   type="date"
                   value={scheduledDate}
                   onChange={e => setScheduledDate(e.target.value)}
+                  style={{ maxWidth: 180 }}
                 />
               )}
             </div>
