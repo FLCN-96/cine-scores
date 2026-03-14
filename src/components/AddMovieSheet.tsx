@@ -22,10 +22,24 @@ interface TmdbResult {
   genre_ids: number[]
 }
 
-type Status = 'upcoming' | 'watched' | 'unplanned'
+type Status = 'upcoming' | 'watched' | 'unplanned' | 'unreleased'
 
 const TODAY = new Date().toISOString().split('T')[0]
 const CURRENT_YEAR = new Date().getFullYear().toString()
+
+const STATUS_LABELS: Record<Status, string> = {
+  watched: 'Already Watched',
+  upcoming: 'Plan to Watch',
+  unplanned: 'Want to Watch',
+  unreleased: 'Not Released Yet',
+}
+
+const SUBMIT_LABELS: Record<Status, string> = {
+  watched: 'Add Watched',
+  upcoming: 'Add Movie',
+  unplanned: 'Add to Backlog',
+  unreleased: 'Add Unreleased',
+}
 
 export function AddMovieSheet({ onClose }: Props) {
   const { addMovie, addRating, activeUserId, tmdbApiKey } = useStore()
@@ -37,6 +51,7 @@ export function AddMovieSheet({ onClose }: Props) {
   const [description, setDescription] = useState('')
   const [posterUrl, setPosterUrl] = useState('')
   const [watchDate, setWatchDate] = useState(TODAY)
+  const [releaseDate, setReleaseDate] = useState('')
   const [tmdbId, setTmdbId] = useState<number | null>(null)
 
   // Rating fields — only used when status === 'watched'
@@ -79,6 +94,7 @@ export function AddMovieSheet({ onClose }: Props) {
     setDescription(result.overview ?? '')
     setGenre(TMDB_GENRE_MAP[result.genre_ids[0]] ?? '')
     setTmdbId(result.id)
+    if (result.release_date) setReleaseDate(result.release_date)
     setSuggestions([])
   }
 
@@ -93,7 +109,8 @@ export function AddMovieSheet({ onClose }: Props) {
       genre,
       description,
       posterUrl,
-      scheduledDate: status === 'unplanned' ? null : (watchDate || null),
+      releaseDate: status === 'unreleased' ? (releaseDate || null) : null,
+      scheduledDate: status === 'unplanned' || status === 'unreleased' ? null : (watchDate || null),
       addedBy: activeUserId ?? '',
       tmdbId,
       watched: isWatched,
@@ -113,6 +130,8 @@ export function AddMovieSheet({ onClose }: Props) {
     displayScore >= 5 ? 'var(--color-accent)' :
     'var(--color-danger)'
 
+  const statuses: Status[] = ['watched', 'upcoming', 'unplanned', 'unreleased']
+
   return (
     <div className="page-view">
 
@@ -125,15 +144,16 @@ export function AddMovieSheet({ onClose }: Props) {
 
       <div className="sheet-body">
           {/* Status toggle */}
-          <div className="seg-control">
-            {(['watched', 'upcoming', 'unplanned'] as Status[]).map(s => (
+          <div className="seg-control" style={{ gridTemplateColumns: `repeat(${statuses.length}, 1fr)` }}>
+            {statuses.map(s => (
               <button
                 key={s}
                 type="button"
                 className={`seg-control__btn${status === s ? ' active' : ''}`}
                 onClick={() => setStatus(s)}
+                style={{ fontSize: 11 }}
               >
-                {s === 'watched' ? 'Watched' : s === 'upcoming' ? 'Upcoming' : 'Unplanned'}
+                {STATUS_LABELS[s]}
               </button>
             ))}
           </div>
@@ -246,10 +266,36 @@ export function AddMovieSheet({ onClose }: Props) {
               </div>
             )}
 
-            {/* Date — only for upcoming and watched */}
-            {status !== 'unplanned' && (
+            {/* Release date — only for unreleased */}
+            {status === 'unreleased' && (
               <div className="form-group">
-                <label>{status === 'watched' ? 'Watch Date' : 'Scheduled Date'}</label>
+                <label>Release Date</label>
+                <input
+                  type="date"
+                  value={releaseDate}
+                  onChange={e => setReleaseDate(e.target.value)}
+                  style={{ maxWidth: 180 }}
+                />
+              </div>
+            )}
+
+            {/* Scheduled date — only for upcoming (plan to watch) */}
+            {status === 'upcoming' && (
+              <div className="form-group">
+                <label>Scheduled Date</label>
+                <input
+                  type="date"
+                  value={watchDate}
+                  onChange={e => setWatchDate(e.target.value)}
+                  style={{ maxWidth: 180 }}
+                />
+              </div>
+            )}
+
+            {/* Watch date — only for watched */}
+            {status === 'watched' && (
+              <div className="form-group">
+                <label>Watch Date</label>
                 <input
                   type="date"
                   value={watchDate}
@@ -311,7 +357,7 @@ export function AddMovieSheet({ onClose }: Props) {
               Cancel
             </button>
             <button type="submit" form="add-movie-form" className="btn btn--primary btn--full" disabled={!title.trim()}>
-              {status === 'watched' ? 'Add Watched' : status === 'upcoming' ? 'Add Movie' : 'Add to Backlog'}
+              {SUBMIT_LABELS[status]}
             </button>
           </div>
       </div>

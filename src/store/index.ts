@@ -11,7 +11,7 @@ const LS = {
   deletedUserIds: 'cine-scores:deletedUserIds',
   deletedMovieIds: 'cine-scores:deletedMovieIds',
   deletedRatingIds: 'cine-scores:deletedRatingIds',
-  lastModified: 'cine-scores:lastModified',
+  storeDirtyAt: 'cine-scores:storeDirtyAt',
 }
 
 function load<T>(key: string, fallback: T): T {
@@ -29,12 +29,21 @@ function save(key: string, value: unknown) {
 
 function touch() {
   const ts = new Date().toISOString()
-  localStorage.setItem(LS.lastModified, ts)
+  localStorage.setItem(LS.storeDirtyAt, ts)
   return ts
 }
 
 function uid() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
+}
+
+function migrateMovie(m: Movie): Movie {
+  return {
+    releaseDate: null,
+    interestedUsers: [],
+    lastModified: m.addedAt,
+    ...m,
+  }
 }
 
 export const useStore = create<AppState>((set, get) => ({
@@ -48,11 +57,12 @@ export const useStore = create<AppState>((set, get) => ({
   deletedMovieIds: [],
   deletedRatingIds: [],
   hydrated: false,
-  lastModified: null,
+  storeDirtyAt: null,
 
   hydrate() {
     const users = load<User[]>(LS.users, [])
-    const movies = load<Movie[]>(LS.movies, [])
+    const rawMovies = load<Movie[]>(LS.movies, [])
+    const movies = rawMovies.map(migrateMovie)
     const ratings = load<Rating[]>(LS.ratings, [])
     const activeUserId = load<string | null>(LS.activeUserId, null)
     const syncConfig = load<SyncConfig | null>(LS.syncConfig, null)
@@ -60,22 +70,26 @@ export const useStore = create<AppState>((set, get) => ({
     const deletedUserIds = load<string[]>(LS.deletedUserIds, [])
     const deletedMovieIds = load<string[]>(LS.deletedMovieIds, [])
     const deletedRatingIds = load<string[]>(LS.deletedRatingIds, [])
-    const lastModified = localStorage.getItem(LS.lastModified) ?? null
-    set({ users, movies, ratings, activeUserId, syncConfig, tmdbApiKey, deletedUserIds, deletedMovieIds, deletedRatingIds, hydrated: true, lastModified })
+    // support legacy key 'cine-scores:lastModified' as fallback
+    const storeDirtyAt =
+      localStorage.getItem(LS.storeDirtyAt) ??
+      localStorage.getItem('cine-scores:lastModified') ??
+      null
+    set({ users, movies, ratings, activeUserId, syncConfig, tmdbApiKey, deletedUserIds, deletedMovieIds, deletedRatingIds, hydrated: true, storeDirtyAt })
   },
 
   addUser(fields) {
     const user: User = { ...fields, id: uid(), createdAt: new Date().toISOString() }
     const users = [...get().users, user]
     const activeUserId = get().activeUserId ?? user.id
-    set({ users, activeUserId, lastModified: touch() })
+    set({ users, activeUserId, storeDirtyAt: touch() })
     save(LS.users, users)
     save(LS.activeUserId, activeUserId)
   },
 
   updateUser(id, patch) {
     const users = get().users.map(u => u.id === id ? { ...u, ...patch } : u)
-    set({ users, lastModified: touch() })
+    set({ users, storeDirtyAt: touch() })
     save(LS.users, users)
   },
 
@@ -83,7 +97,7 @@ export const useStore = create<AppState>((set, get) => ({
     const users = get().users.filter(u => u.id !== id)
     const deletedUserIds = [...get().deletedUserIds, id]
     const activeUserId = get().activeUserId === id ? (users[0]?.id ?? null) : get().activeUserId
-    set({ users, deletedUserIds, activeUserId, lastModified: touch() })
+    set({ users, deletedUserIds, activeUserId, storeDirtyAt: touch() })
     save(LS.users, users)
     save(LS.deletedUserIds, deletedUserIds)
     save(LS.activeUserId, activeUserId)
@@ -96,23 +110,29 @@ export const useStore = create<AppState>((set, get) => ({
 
   addMovie(fields) {
     const id = uid()
+    const now = new Date().toISOString()
     const movie: Movie = {
+      releaseDate: null,
+      interestedUsers: [],
       ...fields,
       id,
-      addedAt: new Date().toISOString(),
+      addedAt: now,
+      lastModified: now,
       watched: fields.watched ?? false,
       watchedAt: fields.watchedAt ?? null,
       attendees: [],
     }
     const movies = [...get().movies, movie]
-    set({ movies, lastModified: touch() })
+    set({ movies, storeDirtyAt: touch() })
     save(LS.movies, movies)
     return id
   },
 
   updateMovie(id, patch) {
-    const movies = get().movies.map(m => m.id === id ? { ...m, ...patch } : m)
-    set({ movies, lastModified: touch() })
+    const movies = get().movies.map(m =>
+      m.id === id ? { ...m, ...patch, lastModified: new Date().toISOString() } : m
+    )
+    set({ movies, storeDirtyAt: touch() })
     save(LS.movies, movies)
   },
 
@@ -120,38 +140,65 @@ export const useStore = create<AppState>((set, get) => ({
     const movies = get().movies.filter(m => m.id !== id)
     const ratings = get().ratings.filter(r => r.movieId !== id)
     const deletedMovieIds = [...get().deletedMovieIds, id]
-    set({ movies, ratings, deletedMovieIds, lastModified: touch() })
+    set({ movies, ratings, deletedMovieIds, storeDirtyAt: touch() })
     save(LS.movies, movies)
     save(LS.ratings, ratings)
     save(LS.deletedMovieIds, deletedMovieIds)
   },
 
   markWatched(id) {
+    const now = new Date().toISOString()
     const movies = get().movies.map(m =>
-      m.id === id ? { ...m, watched: true, watchedAt: new Date().toISOString() } : m
+      m.id === id ? { ...m, watched: true, watchedAt: now, lastModified: now } : m
     )
-    set({ movies, lastModified: touch() })
+    set({ movies, storeDirtyAt: touch() })
     save(LS.movies, movies)
   },
 
   markUnwatched(id) {
+    const now = new Date().toISOString()
     const movies = get().movies.map(m =>
-      m.id === id ? { ...m, watched: false, watchedAt: null } : m
+      m.id === id ? { ...m, watched: false, watchedAt: null, lastModified: now } : m
     )
-    set({ movies, lastModified: touch() })
+    set({ movies, storeDirtyAt: touch() })
     save(LS.movies, movies)
   },
 
   toggleAttendance(movieId) {
     const { activeUserId } = get()
     if (!activeUserId) return
+    const now = new Date().toISOString()
     const movies = get().movies.map(m => {
       if (m.id !== movieId) return m
       const attendees = m.attendees ?? []
       const going = attendees.includes(activeUserId)
-      return { ...m, attendees: going ? attendees.filter(id => id !== activeUserId) : [...attendees, activeUserId] }
+      return {
+        ...m,
+        attendees: going ? attendees.filter(id => id !== activeUserId) : [...attendees, activeUserId],
+        lastModified: now,
+      }
     })
-    set({ movies, lastModified: touch() })
+    set({ movies, storeDirtyAt: touch() })
+    save(LS.movies, movies)
+  },
+
+  toggleInterest(movieId) {
+    const { activeUserId } = get()
+    if (!activeUserId) return
+    const now = new Date().toISOString()
+    const movies = get().movies.map(m => {
+      if (m.id !== movieId) return m
+      const interested = m.interestedUsers ?? []
+      const already = interested.includes(activeUserId)
+      return {
+        ...m,
+        interestedUsers: already
+          ? interested.filter(id => id !== activeUserId)
+          : [...interested, activeUserId],
+        lastModified: now,
+      }
+    })
+    set({ movies, storeDirtyAt: touch() })
     save(LS.movies, movies)
   },
 
@@ -166,20 +213,20 @@ export const useStore = create<AppState>((set, get) => ({
       const rating: Rating = { ...fields, id: uid(), ratedAt: new Date().toISOString() }
       ratings = [...get().ratings, rating]
     }
-    set({ ratings, lastModified: touch() })
+    set({ ratings, storeDirtyAt: touch() })
     save(LS.ratings, ratings)
   },
 
   updateRating(id, patch) {
     const ratings = get().ratings.map(r => r.id === id ? { ...r, ...patch } : r)
-    set({ ratings, lastModified: touch() })
+    set({ ratings, storeDirtyAt: touch() })
     save(LS.ratings, ratings)
   },
 
   deleteRating(id) {
     const ratings = get().ratings.filter(r => r.id !== id)
     const deletedRatingIds = [...get().deletedRatingIds, id]
-    set({ ratings, deletedRatingIds, lastModified: touch() })
+    set({ ratings, deletedRatingIds, storeDirtyAt: touch() })
     save(LS.ratings, ratings)
     save(LS.deletedRatingIds, deletedRatingIds)
   },
@@ -195,10 +242,11 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   replaceAll({ users, movies, ratings }) {
-    localStorage.removeItem(LS.lastModified)
-    set({ users, movies, ratings, lastModified: null })
+    localStorage.removeItem(LS.storeDirtyAt)
+    const migratedMovies = movies.map(migrateMovie)
+    set({ users, movies: migratedMovies, ratings, storeDirtyAt: null })
     save(LS.users, users)
-    save(LS.movies, movies)
+    save(LS.movies, migratedMovies)
     save(LS.ratings, ratings)
   },
 }))

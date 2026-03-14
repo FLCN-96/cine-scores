@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useStore } from '../store'
 import type { User, Movie, Rating } from '../types'
 
@@ -64,13 +64,24 @@ function mergeData(local: RemoteData, remote: RemoteData, deletedUserIds: string
   for (const u of local.users) userMap.set(u.id, u)
   const users = Array.from(userMap.values())
 
-  // Movies: remote wins for existing; local-only preserved
+  // Movies: use per-movie lastModified to pick the newer version; respect tombstones
   const movieMap = new Map<string, Movie>()
   for (const m of remote.movies) {
     if (!deletedMovieIds.includes(m.id)) movieMap.set(m.id, m)
   }
   for (const m of local.movies) {
-    if (!movieMap.has(m.id)) movieMap.set(m.id, m)
+    if (deletedMovieIds.includes(m.id)) continue
+    const existing = movieMap.get(m.id)
+    if (!existing) {
+      movieMap.set(m.id, m)
+    } else {
+      // Pick whichever was modified more recently
+      const localTs = m.lastModified ?? m.addedAt
+      const remoteTs = existing.lastModified ?? existing.addedAt
+      if (new Date(localTs) > new Date(remoteTs)) {
+        movieMap.set(m.id, m)
+      }
+    }
   }
   const movies = Array.from(movieMap.values())
 
@@ -88,12 +99,12 @@ function mergeData(local: RemoteData, remote: RemoteData, deletedUserIds: string
 }
 
 export function useSync() {
-  const { syncConfig, users, movies, ratings, deletedUserIds, deletedMovieIds, deletedRatingIds, replaceAll, setSyncConfig, lastModified } = useStore()
+  const { syncConfig, users, movies, ratings, deletedUserIds, deletedMovieIds, deletedRatingIds, replaceAll, setSyncConfig, storeDirtyAt } = useStore()
   const [syncing, setSyncing] = useState(false)
   const [lastSynced, setLastSynced] = useState<string | null>(() => localStorage.getItem('cine-scores:lastSynced'))
   const [error, setError] = useState<string | null>(null)
 
-  const isDirty = !!lastModified
+  const isDirty = !!storeDirtyAt
 
   const sync = useCallback(async () => {
     if (!syncConfig || syncing) return
@@ -143,6 +154,17 @@ export function useSync() {
       setSyncing(false)
     }
   }, [syncConfig, users, movies, ratings, deletedUserIds, deletedMovieIds, deletedRatingIds, replaceAll])
+
+  // Auto-sync when user returns to the tab if there are pending local changes
+  useEffect(() => {
+    const handler = () => {
+      if (!document.hidden && isDirty && syncConfig && !syncing) {
+        sync()
+      }
+    }
+    document.addEventListener('visibilitychange', handler)
+    return () => document.removeEventListener('visibilitychange', handler)
+  }, [isDirty, syncConfig, syncing, sync])
 
   return { sync, syncing, lastSynced, error, syncConfig, setSyncConfig, isDirty }
 }

@@ -10,12 +10,13 @@ interface Props {
 }
 
 export function RateMovieSheet({ movie, onClose }: Props) {
-  const { addRating, ratings, activeUserId, users } = useStore()
+  const { addRating, deleteRating, ratings, activeUserId, users } = useStore()
   const existing = ratings.find(r => r.movieId === movie.id && r.userId === activeUserId)
   const [score, setScore] = useState(existing?.score ?? 7)
   const [hovered, setHovered] = useState<number | null>(null)
   const [review, setReview] = useState(existing?.review ?? '')
   const [saved, setSaved] = useState(false)
+  const [confirmRemove, setConfirmRemove] = useState(false)
 
   const activeUser = users.find(u => u.id === activeUserId)
   const displayScore = hovered ?? score
@@ -26,6 +27,12 @@ export function RateMovieSheet({ movie, onClose }: Props) {
     addRating({ movieId: movie.id, userId: activeUserId, score, review })
     setSaved(true)
     setTimeout(onClose, 1000)
+  }
+
+  function handleRemoveRating() {
+    if (!existing) return
+    deleteRating(existing.id)
+    onClose()
   }
 
   const scoreColor =
@@ -90,6 +97,27 @@ export function RateMovieSheet({ movie, onClose }: Props) {
           </div>
 
         </form>
+
+        {existing && (
+          <div style={{ marginTop: 'var(--space-lg)' }}>
+            {confirmRemove ? (
+              <div className="confirm-row">
+                <span style={{ flex: 1, fontSize: 14, color: 'var(--color-text-secondary)' }}>Remove your rating?</span>
+                <button className="btn btn--secondary btn--sm" onClick={() => setConfirmRemove(false)}>Cancel</button>
+                <button className="btn btn--danger btn--sm" onClick={handleRemoveRating}>Remove</button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm"
+                style={{ color: 'var(--color-danger)' }}
+                onClick={() => setConfirmRemove(true)}
+              >
+                Remove My Rating
+              </button>
+            )}
+          </div>
+        )}
 
         <OtherRatings movieId={movie.id} excludeUserId={activeUserId ?? ''} />
       </div>
