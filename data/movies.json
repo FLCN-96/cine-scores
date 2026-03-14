@@ -76,5 +76,23 @@
     "lastModified": "2026-03-14T22:24:37.144Z",
     "attendees": [],
     "interestedUsers": []
+  },
+  {
+    "title": "Umamusume: Pretty Derby - Road to the Top Movie",
+    "year": 2024,
+    "genre": "Animation",
+    "description": "Theatrical version of Uma Musume: Pretty Derby - ROAD TO THE TOP which includes new extra scenes.",
+    "posterUrl": "https://image.tmdb.org/t/p/w500/jxkIz5oywSb6gU67rylrkCUk1D9.jpg",
+    "releaseDate": null,
+    "scheduledDate": "2026-01-02",
+    "addedBy": "1773294758915-gqqcz75",
+    "tmdbId": 1427318,
+    "watched": true,
+    "watchedAt": "2026-01-02",
+    "id": "1773528607121-247gexu",
+    "addedAt": "2026-03-14T22:50:07.121Z",
+    "lastModified": "2026-03-14T22:50:07.121Z",
+    "attendees": [],
+    "interestedUsers": []
   }
 ]
