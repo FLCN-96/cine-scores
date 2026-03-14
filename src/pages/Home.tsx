@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useStore } from '../store'
 import { MoviePoster } from '../components/MoviePoster'
 import { MovieDetailSheet } from '../components/MovieDetailSheet'
-import { RateMovieSheet } from '../components/RateMovieSheet'
 import { ScheduleSheet } from '../components/ScheduleSheet'
-import { IconFilm, IconCalendar, IconStar, IconAttend } from '../components/Icons'
+import { IconFilm, IconCalendar, IconAttend, IconEye } from '../components/Icons'
 import type { Movie } from '../types'
 
 const TODAY = new Date().toISOString().split('T')[0]
@@ -14,28 +14,14 @@ function formatDate(d: string) {
 }
 
 export function Home() {
-  const { movies, users, ratings, activeUserId, toggleAttendance, toggleInterest } = useStore()
+  const { movies, users, activeUserId, toggleAttendance, toggleInterest } = useStore()
   const [selected, setSelected] = useState<Movie | null>(null)
-  const [ratingMovie, setRatingMovie] = useState<Movie | null>(null)
   const [schedulingMovie, setSchedulingMovie] = useState<Movie | null>(null)
+  const navigate = useNavigate()
 
   const activeUser = users.find(u => u.id === activeUserId)
 
-  const { rateThese, comingUp, notReleased, wantToWatch } = useMemo(() => {
-    const ratedMovieIds = new Set(
-      ratings.filter(r => r.userId === activeUserId).map(r => r.movieId)
-    )
-
-    // Rate these: watched movies OR past-date events, not yet rated by active user
-    const rateThese = movies.filter(m => {
-      if (!activeUserId || ratedMovieIds.has(m.id)) return false
-      return m.watched || (m.scheduledDate !== null && m.scheduledDate < TODAY)
-    }).sort((a, b) => {
-      const aDate = a.watchedAt ?? a.scheduledDate ?? a.addedAt
-      const bDate = b.watchedAt ?? b.scheduledDate ?? b.addedAt
-      return new Date(bDate).getTime() - new Date(aDate).getTime()
-    })
-
+  const { comingUp, notReleased, wantToWatch } = useMemo(() => {
     // Coming up: future-scheduled, not watched
     const comingUp = movies.filter(m =>
       !m.watched && m.scheduledDate !== null && m.scheduledDate >= TODAY
@@ -58,12 +44,11 @@ export function Home() {
       !m.watched && !m.scheduledDate && !m.releaseDate
     ).sort((a, b) => new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime())
 
-    return { rateThese, comingUp, notReleased, wantToWatch }
-  }, [movies, ratings, activeUserId])
+    return { comingUp, notReleased, wantToWatch }
+  }, [movies])
 
   const watchedCount = movies.filter(m => m.watched).length
   const totalMovies = movies.length
-  const totalRatings = ratings.filter(r => r.userId === activeUserId).length
 
   function AttendButton({ movie }: { movie: Movie }) {
     const going = activeUserId ? (movie.attendees ?? []).includes(activeUserId) : false
@@ -152,38 +137,26 @@ export function Home() {
             <div className="stat-card__value">{watchedCount}</div>
             <div className="stat-card__label">Watched</div>
           </div>
-          <div className="stat-card">
-            <div className="stat-card__value">{totalRatings}</div>
-            <div className="stat-card__label">Ratings</div>
-          </div>
         </div>
 
-        {/* Rate These — watched or past events not yet rated by active user */}
-        {rateThese.length > 0 && (
-          <div className="section">
-            <div className="section-title" style={{ color: 'var(--color-accent)' }}>Rate These</div>
-            {rateThese.map(m => (
-              <div key={m.id} className="movie-card" onClick={() => setSelected(m)}>
-                <MoviePoster posterUrl={m.posterUrl} title={m.title} />
-                <div className="movie-info">
-                  <div className="movie-title">{m.title}</div>
-                  <div className="movie-meta">{[m.year, m.genre].filter(Boolean).join(' · ')}</div>
-                  {m.scheduledDate && (
-                    <div className="movie-scheduled" style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12 }}>
-                      <IconCalendar size={11} />{formatDate(m.scheduledDate)}
-                    </div>
-                  )}
-                </div>
-                <button
-                  className="btn btn--primary btn--sm"
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 4, flexShrink: 0 }}
-                  onClick={e => { e.stopPropagation(); setRatingMovie(m) }}
-                >
-                  <IconStar size={13} filled /> Rate
-                </button>
-              </div>
-            ))}
-          </div>
+        {/* Recently Watched teaser — passive link to Movies > Watched tab */}
+        {watchedCount > 0 && (
+          <button
+            className="btn btn--ghost"
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '12px var(--space-md)', borderRadius: 'var(--radius-md)',
+              background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+              marginBottom: 'var(--space-sm)', color: 'var(--color-text-secondary)',
+            }}
+            onClick={() => navigate('/upcoming?tab=watched')}
+          >
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <IconEye size={16} />
+              <span>{watchedCount} movie{watchedCount !== 1 ? 's' : ''} watched</span>
+            </span>
+            <span style={{ fontSize: 13 }}>View all →</span>
+          </button>
         )}
 
         {/* Coming Up — future scheduled */}
@@ -280,7 +253,7 @@ export function Home() {
           </div>
         )}
 
-        {movies.length > 0 && rateThese.length === 0 && comingUp.length === 0 && notReleased.length === 0 && wantToWatch.length === 0 && (
+        {movies.length > 0 && comingUp.length === 0 && notReleased.length === 0 && wantToWatch.length === 0 && (
           <div className="empty-state">
             <div className="empty-state__icon"><IconFilm size={44} /></div>
             <div className="empty-state__text">All caught up!</div>
@@ -289,7 +262,6 @@ export function Home() {
       </div>
 
       {selected && <MovieDetailSheet movie={selected} onClose={() => setSelected(null)} />}
-      {ratingMovie && <RateMovieSheet movie={ratingMovie} onClose={() => setRatingMovie(null)} />}
       {schedulingMovie && <ScheduleSheet movie={schedulingMovie} onClose={() => setSchedulingMovie(null)} />}
     </div>
   )
