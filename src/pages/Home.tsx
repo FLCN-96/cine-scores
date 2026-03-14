@@ -63,7 +63,7 @@ export function Home() {
 
   const watchedCount = movies.filter(m => m.watched).length
   const totalMovies = movies.length
-  const totalRatings = ratings.length
+  const totalRatings = ratings.filter(r => r.userId === activeUserId).length
 
   function AttendButton({ movie }: { movie: Movie }) {
     const going = activeUserId ? (movie.attendees ?? []).includes(activeUserId) : false

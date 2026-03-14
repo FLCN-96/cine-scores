@@ -240,14 +240,32 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   purgeOrphanRatings() {
-    const { users, ratings, deletedRatingIds } = get()
+    const { users, movies, ratings, deletedRatingIds } = get()
     const userIdSet = new Set(users.map(u => u.id))
-    const orphans = ratings.filter(r => !userIdSet.has(r.userId))
-    if (!orphans.length) return
-    const newRatings = ratings.filter(r => userIdSet.has(r.userId))
-    const newDeletedRatingIds = [...deletedRatingIds, ...orphans.map(r => r.id)]
-    set({ ratings: newRatings, deletedRatingIds: newDeletedRatingIds, storeDirtyAt: touch() })
-    save(LS.ratings, newRatings)
+    const movieIdSet = new Set(movies.map(m => m.id))
+
+    // Remove ratings with deleted users or deleted movies
+    const validRatings = ratings.filter(r => userIdSet.has(r.userId) && movieIdSet.has(r.movieId))
+
+    // Remove duplicate (userId, movieId) pairs — keep most recent ratedAt
+    const seen = new Map<string, Rating>()
+    for (const r of validRatings) {
+      const key = `${r.userId}:${r.movieId}`
+      const existing = seen.get(key)
+      if (!existing || r.ratedAt > existing.ratedAt) {
+        seen.set(key, r)
+      }
+    }
+    const dedupedRatings = Array.from(seen.values())
+
+    const removedIds = ratings
+      .filter(r => !dedupedRatings.some(d => d.id === r.id))
+      .map(r => r.id)
+
+    if (!removedIds.length) return
+    const newDeletedRatingIds = [...deletedRatingIds, ...removedIds]
+    set({ ratings: dedupedRatings, deletedRatingIds: newDeletedRatingIds, storeDirtyAt: touch() })
+    save(LS.ratings, dedupedRatings)
     save(LS.deletedRatingIds, newDeletedRatingIds)
   },
 

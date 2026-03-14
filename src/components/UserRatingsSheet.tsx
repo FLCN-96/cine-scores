@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../store'
+import { useSync } from '../hooks/useSync'
 import { MoviePoster } from './MoviePoster'
 import { IconBack, IconStar } from './Icons'
 
@@ -9,6 +10,7 @@ interface Props {
 
 export function UserRatingsSheet({ onClose }: Props) {
   const { ratings, movies, deleteRating, activeUserId, users } = useStore()
+  const { sync } = useSync()
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
   const activeUser = users.find(u => u.id === activeUserId)
@@ -17,6 +19,7 @@ export function UserRatingsSheet({ onClose }: Props) {
   function handleDelete(ratingId: string) {
     deleteRating(ratingId)
     setConfirmDeleteId(null)
+    sync()
   }
 
   return (

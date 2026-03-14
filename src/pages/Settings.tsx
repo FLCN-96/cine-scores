@@ -19,7 +19,7 @@ function parseRepoSlug(slug: string): { owner: string; repo: string } | null {
 
 export function Settings() {
   const { sync, syncing, lastSynced, error, syncConfig, setSyncConfig } = useSync()
-  const { tmdbApiKey, setTmdbApiKey, ratings, users, activeUserId, censorUntilRated, setCensorUntilRated, purgeOrphanRatings } = useStore()
+  const { tmdbApiKey, setTmdbApiKey, ratings, movies, users, activeUserId, censorUntilRated, setCensorUntilRated, purgeOrphanRatings } = useStore()
   const [editing, setEditing] = useState(false)
   const [pat, setPat] = useState(syncConfig?.pat ?? '')
   const [repoSlug, setRepoSlug] = useState(syncConfig ? `${syncConfig.owner}/${syncConfig.repo}` : '')
@@ -31,7 +31,18 @@ export function Settings() {
   const [confirmPurge, setConfirmPurge] = useState(false)
 
   const userIdSet = useMemo(() => new Set(users.map(u => u.id)), [users])
-  const orphanCount = useMemo(() => ratings.filter(r => !userIdSet.has(r.userId)).length, [ratings, userIdSet])
+  const movieIdSet = useMemo(() => new Set(movies.map(m => m.id)), [movies])
+  const orphanCount = useMemo(() => {
+    const valid = ratings.filter(r => userIdSet.has(r.userId) && movieIdSet.has(r.movieId))
+    const seen = new Set<string>()
+    let dupes = 0
+    for (const r of valid) {
+      const key = `${r.userId}:${r.movieId}`
+      if (seen.has(key)) dupes++
+      else seen.add(key)
+    }
+    return ratings.length - valid.length + dupes
+  }, [ratings, userIdSet, movieIdSet])
   const myRatingCount = ratings.filter(r => r.userId === activeUserId).length
 
   function handleTmdbSave(e: React.FormEvent) {
@@ -223,15 +234,15 @@ export function Settings() {
               {confirmPurge ? (
                 <div className="confirm-row">
                   <span style={{ flex: 1, fontSize: 14, color: 'var(--color-text-secondary)' }}>
-                    Remove {orphanCount} orphan rating{orphanCount !== 1 ? 's' : ''}?
+                    Remove {orphanCount} orphaned/duplicate rating{orphanCount !== 1 ? 's' : ''}?
                   </span>
                   <button className="btn btn--secondary btn--sm" onClick={() => setConfirmPurge(false)}>Cancel</button>
-                  <button className="btn btn--danger btn--sm" onClick={() => { purgeOrphanRatings(); setConfirmPurge(false) }}>Remove</button>
+                  <button className="btn btn--danger btn--sm" onClick={() => { purgeOrphanRatings(); setConfirmPurge(false); sync() }}>Remove</button>
                 </div>
               ) : (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', background: 'rgba(231,76,60,0.07)', border: '1px solid rgba(231,76,60,0.25)', borderRadius: 'var(--radius-sm)', padding: 'var(--space-sm) var(--space-md)' }}>
                   <div style={{ flex: 1, fontSize: 13, color: 'var(--color-text-secondary)' }}>
-                    {orphanCount} rating{orphanCount !== 1 ? 's' : ''} from deleted users
+                    {orphanCount} orphaned or duplicate rating{orphanCount !== 1 ? 's' : ''} found
                   </div>
                   <button
                     className="btn btn--ghost btn--sm"
