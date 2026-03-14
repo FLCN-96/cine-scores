@@ -47,7 +47,7 @@ export function UserRatingsSheet({ onClose }: Props) {
                 'var(--color-danger)'
               return (
                 <div key={r.id} className="row-item" style={{ alignItems: 'flex-start' }}>
-                  <MoviePoster posterUrl={movie?.posterUrl} title={movie?.title ?? 'Unknown'} size="sm" />
+                  <MoviePoster posterUrl={movie?.posterUrl ?? ''} title={movie?.title ?? 'Unknown'} size="sm" />
                   <div className="row-item__body">
                     <div className="row-item__title">{movie?.title ?? 'Unknown Movie'}</div>
                     {movie?.year && (
