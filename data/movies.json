@@ -13,23 +13,5 @@
     "watched": false,
     "watchedAt": null,
     "attendees": []
-  },
-  {
-    "title": "Pokémon Detective Pikachu",
-    "year": 2019,
-    "genre": "Action",
-    "description": "In a world where people collect pocket-size monsters (Pokémon) to do battle, a boy comes across an intelligent monster who seeks to be a detective.",
-    "posterUrl": "https://image.tmdb.org/t/p/w500/uhWvnFgg3BNlcUz0Re1HfQqIcCD.jpg",
-    "scheduledDate": "2026-03-08",
-    "addedBy": "1773294758915-gqqcz75",
-    "tmdbId": 447404,
-    "watched": true,
-    "watchedAt": "2026-03-08",
-    "id": "1773347720114-v2y3oxd",
-    "addedAt": "2026-03-12T20:35:20.114Z",
-    "attendees": [],
-    "releaseDate": null,
-    "interestedUsers": [],
-    "lastModified": "2026-03-12T20:35:20.114Z"
   }
 ]
