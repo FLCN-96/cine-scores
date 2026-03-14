@@ -10,9 +10,12 @@
     "tmdbId": 1480387,
     "id": "1773296917390-m323cjh",
     "addedAt": "2026-03-12T06:28:37.390Z",
-    "watched": false,
-    "watchedAt": null,
-    "attendees": []
+    "watched": true,
+    "watchedAt": "2026-03-14T22:24:50.165Z",
+    "attendees": [],
+    "releaseDate": null,
+    "interestedUsers": [],
+    "lastModified": "2026-03-14T22:24:50.165Z"
   },
   {
     "title": "Hokum",
@@ -55,5 +58,23 @@
       "1773294758915-gqqcz75",
       "1773525948561-1erie51"
     ]
+  },
+  {
+    "title": "Chainsaw Man - The Movie: Reze Arc",
+    "year": 2025,
+    "genre": "Animation",
+    "description": "In a brutal war between devils, hunters, and secret enemies, a mysterious girl named Reze has stepped into Denji's world, and he faces his deadliest battle yet, fueled by love in a world where survival knows no rules.",
+    "posterUrl": "https://image.tmdb.org/t/p/w500/pHyxb2RV5wLlboAwm9ZJ9qTVEDw.jpg",
+    "releaseDate": null,
+    "scheduledDate": "2026-01-01",
+    "addedBy": "1773294758915-gqqcz75",
+    "tmdbId": 1218925,
+    "watched": true,
+    "watchedAt": "2026-01-01",
+    "id": "1773527077144-h1ubv9s",
+    "addedAt": "2026-03-14T22:24:37.144Z",
+    "lastModified": "2026-03-14T22:24:37.144Z",
+    "attendees": [],
+    "interestedUsers": []
   }
 ]
