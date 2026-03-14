@@ -209,6 +209,14 @@ img { display: block; max-width: 100%; }
   letter-spacing: 0.04em;
 }
 
+button.stat-card,
+.stat-card--btn {
+  cursor: pointer;
+  border: none;
+  width: 100%;
+  font: inherit;
+}
+
 /* ── Movie Card ─────────────────────────────────────────── */
 .movie-card {
   display: flex;
