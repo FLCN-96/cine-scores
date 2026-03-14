@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useStore } from '../store'
 import { MoviePoster } from '../components/MoviePoster'
 import { MovieDetailSheet } from '../components/MovieDetailSheet'
@@ -28,12 +29,14 @@ function IconClock({ size = 16 }: { size?: number }) {
 }
 
 export function Upcoming() {
-  const { movies, ratings, users, activeUserId, toggleInterest } = useStore()
+  const { movies, ratings, users, activeUserId, censorUntilRated, toggleInterest } = useStore()
   const [selected, setSelected] = useState<Movie | null>(null)
   const [ratingMovie, setRatingMovie] = useState<Movie | null>(null)
   const [showAdd, setShowAdd] = useState(false)
   const [schedulingMovie, setSchedulingMovie] = useState<Movie | null>(null)
-  const [filter, setFilter] = useState<Filter>('upcoming')
+  const [searchParams] = useSearchParams()
+  const initialTab = (searchParams.get('tab') as Filter | null) ?? 'upcoming'
+  const [filter, setFilter] = useState<Filter>(initialTab)
   const statsMap = useAllMovieStats(movies, ratings)
 
   const filtered = useMemo(() => {
@@ -140,6 +143,9 @@ export function Upcoming() {
             {filtered.map(m => {
               const stats = statsMap[m.id]
               const notRatedByMe = activeUserId && !ratedByMe.has(m.id) && m.watched
+              const isCensored = censorUntilRated && !ratedByMe.has(m.id)
+              const displayAvg = isCensored ? null : stats.avg
+              const censoredHasScores = isCensored && stats.avg !== null
               const isAvailableNow = !m.watched && !m.scheduledDate && m.releaseDate && m.releaseDate <= TODAY
               const showInterest = filter === 'unreleased' || filter === 'unscheduled'
               const showScheduleBtn = filter === 'unreleased' || filter === 'unscheduled' || filter === 'upcoming'
@@ -195,12 +201,15 @@ export function Upcoming() {
                     )}
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
-                    {stats.avg !== null && (
+                    {(displayAvg !== null || censoredHasScores) && (
                       <div style={{
                         fontWeight: 800, fontSize: 20,
-                        color: stats.avg >= 8 ? 'var(--color-success)' : stats.avg >= 5 ? 'var(--color-accent)' : 'var(--color-danger)'
+                        color: censoredHasScores ? 'var(--color-text-muted)' :
+                          displayAvg! >= 8 ? 'var(--color-success)' :
+                          displayAvg! >= 5 ? 'var(--color-accent)' :
+                          'var(--color-danger)'
                       }}>
-                        {stats.avg}
+                        {censoredHasScores ? '?' : displayAvg}
                       </div>
                     )}
                     {notRatedByMe && (

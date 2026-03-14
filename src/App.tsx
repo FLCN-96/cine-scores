@@ -21,7 +21,7 @@ export function App() {
   return (
     <div className="app-shell">
       <SyncButton />
-      <div className="app-content" style={{ padding: 0 }}>
+      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/upcoming" element={<Upcoming />} />
