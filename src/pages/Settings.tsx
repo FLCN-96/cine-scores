@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useSync } from '../hooks/useSync'
 import { useStore } from '../store'
 import { IconSync, IconCheck } from '../components/Icons'
+import { UserRatingsSheet } from '../components/UserRatingsSheet'
 import type { SyncConfig } from '../types'
 
 function formatTs(ts: string | null) {
@@ -18,7 +19,7 @@ function parseRepoSlug(slug: string): { owner: string; repo: string } | null {
 
 export function Settings() {
   const { sync, syncing, lastSynced, error, syncConfig, setSyncConfig } = useSync()
-  const { tmdbApiKey, setTmdbApiKey } = useStore()
+  const { tmdbApiKey, setTmdbApiKey, ratings, users, activeUserId, censorUntilRated, setCensorUntilRated, purgeOrphanRatings } = useStore()
   const [editing, setEditing] = useState(false)
   const [pat, setPat] = useState(syncConfig?.pat ?? '')
   const [repoSlug, setRepoSlug] = useState(syncConfig ? `${syncConfig.owner}/${syncConfig.repo}` : '')
@@ -26,6 +27,12 @@ export function Settings() {
   const [confirmClear, setConfirmClear] = useState(false)
   const [tmdbKey, setTmdbKey] = useState(tmdbApiKey ?? '')
   const [tmdbSaved, setTmdbSaved] = useState(false)
+  const [showMyRatings, setShowMyRatings] = useState(false)
+  const [confirmPurge, setConfirmPurge] = useState(false)
+
+  const userIdSet = useMemo(() => new Set(users.map(u => u.id)), [users])
+  const orphanCount = useMemo(() => ratings.filter(r => !userIdSet.has(r.userId)).length, [ratings, userIdSet])
+  const myRatingCount = ratings.filter(r => r.userId === activeUserId).length
 
   function handleTmdbSave(e: React.FormEvent) {
     e.preventDefault()
@@ -56,6 +63,7 @@ export function Settings() {
   const slugValid = !!parseRepoSlug(repoSlug)
 
   return (
+    <>
     <div className="app-content">
       <div className="page">
         <div className="page-header">
@@ -180,6 +188,64 @@ export function Settings() {
           </form>
         </div>
 
+        {/* Ratings */}
+        <div className="section" style={{ marginTop: 'var(--space-md)' }}>
+          <div className="section-title">Ratings</div>
+
+          {/* Censor toggle */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', marginBottom: 'var(--space-sm)' }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 600, fontSize: 14 }}>Hide friends' scores until I rate</div>
+              <div style={{ fontSize: 13, color: 'var(--color-text-muted)', marginTop: 2 }}>
+                Keeps others' ratings hidden until you've submitted your own.
+              </div>
+            </div>
+            <button
+              className={`btn btn--sm ${censorUntilRated ? 'btn--primary' : 'btn--secondary'}`}
+              onClick={() => setCensorUntilRated(!censorUntilRated)}
+            >
+              {censorUntilRated ? 'On' : 'Off'}
+            </button>
+          </div>
+
+          {/* Manage my ratings */}
+          <button
+            className="btn btn--ghost btn--full"
+            style={{ marginTop: 'var(--space-sm)', textAlign: 'left' }}
+            onClick={() => setShowMyRatings(true)}
+          >
+            Manage My Ratings ({myRatingCount})
+          </button>
+
+          {/* Orphan cleanup */}
+          {orphanCount > 0 && (
+            <div style={{ marginTop: 'var(--space-md)' }}>
+              {confirmPurge ? (
+                <div className="confirm-row">
+                  <span style={{ flex: 1, fontSize: 14, color: 'var(--color-text-secondary)' }}>
+                    Remove {orphanCount} orphan rating{orphanCount !== 1 ? 's' : ''}?
+                  </span>
+                  <button className="btn btn--secondary btn--sm" onClick={() => setConfirmPurge(false)}>Cancel</button>
+                  <button className="btn btn--danger btn--sm" onClick={() => { purgeOrphanRatings(); setConfirmPurge(false) }}>Remove</button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', background: 'rgba(231,76,60,0.07)', border: '1px solid rgba(231,76,60,0.25)', borderRadius: 'var(--radius-sm)', padding: 'var(--space-sm) var(--space-md)' }}>
+                  <div style={{ flex: 1, fontSize: 13, color: 'var(--color-text-secondary)' }}>
+                    {orphanCount} rating{orphanCount !== 1 ? 's' : ''} from deleted users
+                  </div>
+                  <button
+                    className="btn btn--ghost btn--sm"
+                    style={{ color: 'var(--color-danger)' }}
+                    onClick={() => setConfirmPurge(true)}
+                  >
+                    Clean Up
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
         {/* About */}
         <div className="section" style={{ marginTop: 'var(--space-md)' }}>
           <div className="section-title">About</div>
@@ -210,5 +276,8 @@ export function Settings() {
         )}
       </div>
     </div>
+
+    {showMyRatings && <UserRatingsSheet onClose={() => setShowMyRatings(false)} />}
+    </>
   )
 }

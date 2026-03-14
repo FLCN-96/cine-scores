@@ -7,7 +7,7 @@ import { IconStar } from '../components/Icons'
 import type { Movie } from '../types'
 
 export function Ratings() {
-  const { movies, ratings, users, activeUserId } = useStore()
+  const { movies, ratings, users, activeUserId, censorUntilRated } = useStore()
   const [selected, setSelected] = useState<Movie | null>(null)
   const [ratingMovie, setRatingMovie] = useState<Movie | null>(null)
   const [filterUserId, setFilterUserId] = useState<string>('all')
@@ -83,7 +83,10 @@ export function Ratings() {
           <div className="section">
             {moviesWithStats.map(({ movie, avg, count }, idx) => {
               const showRateBtn = isMyFilter && activeUserId && !ratedByMe.has(movie.id)
-              const ranked = avg !== null && filterUserId === 'all'
+              const isCensored = censorUntilRated && !ratedByMe.has(movie.id)
+              const ranked = avg !== null && filterUserId === 'all' && !isCensored
+              const displayAvg = isCensored ? null : avg
+              const censoredHasScores = isCensored && avg !== null
               return (
                 <div key={movie.id} className="movie-card" onClick={() => setSelected(movie)}>
                   {ranked && (
@@ -97,7 +100,7 @@ export function Ratings() {
                     <div className="movie-meta">
                       {[movie.year, movie.genre].filter(Boolean).join(' · ')}
                     </div>
-                    {filterUserId === 'all' && (
+                    {filterUserId === 'all' && !isCensored && (
                       <div style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
                         {count} rating{count !== 1 ? 's' : ''}
                       </div>
@@ -106,13 +109,14 @@ export function Ratings() {
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
                     <div style={{
                       fontWeight: 800,
-                      fontSize: avg !== null ? 24 : 18,
-                      color: avg === null ? 'var(--color-text-muted)' :
-                        avg >= 8 ? 'var(--color-success)' :
-                        avg >= 5 ? 'var(--color-accent)' :
+                      fontSize: displayAvg !== null ? 24 : 18,
+                      color: censoredHasScores ? 'var(--color-text-muted)' :
+                        displayAvg === null ? 'var(--color-text-muted)' :
+                        displayAvg >= 8 ? 'var(--color-success)' :
+                        displayAvg >= 5 ? 'var(--color-accent)' :
                         'var(--color-danger)'
                     }}>
-                      {avg ?? '—'}
+                      {censoredHasScores ? '?' : (displayAvg ?? '—')}
                     </div>
                     {showRateBtn && (
                       <button
@@ -130,7 +134,7 @@ export function Ratings() {
           </div>
         )}
 
-        {filterUserId === 'all' && users.length > 1 && ratings.length > 0 && (
+        {filterUserId === 'all' && users.length > 1 && ratings.length > 0 && !censorUntilRated && (
           <UserBreakdown />
         )}
       </div>

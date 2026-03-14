@@ -12,6 +12,7 @@ const LS = {
   deletedMovieIds: 'cine-scores:deletedMovieIds',
   deletedRatingIds: 'cine-scores:deletedRatingIds',
   storeDirtyAt: 'cine-scores:storeDirtyAt',
+  censorUntilRated: 'cine-scores:censorUntilRated',
 }
 
 function load<T>(key: string, fallback: T): T {
@@ -58,6 +59,7 @@ export const useStore = create<AppState>((set, get) => ({
   deletedRatingIds: [],
   hydrated: false,
   storeDirtyAt: null,
+  censorUntilRated: false,
 
   hydrate() {
     const users = load<User[]>(LS.users, [])
@@ -75,7 +77,8 @@ export const useStore = create<AppState>((set, get) => ({
       localStorage.getItem(LS.storeDirtyAt) ??
       localStorage.getItem('cine-scores:lastModified') ??
       null
-    set({ users, movies, ratings, activeUserId, syncConfig, tmdbApiKey, deletedUserIds, deletedMovieIds, deletedRatingIds, hydrated: true, storeDirtyAt })
+    const censorUntilRated = load<boolean>(LS.censorUntilRated, false)
+    set({ users, movies, ratings, activeUserId, syncConfig, tmdbApiKey, deletedUserIds, deletedMovieIds, deletedRatingIds, hydrated: true, storeDirtyAt, censorUntilRated })
   },
 
   addUser(fields) {
@@ -229,6 +232,23 @@ export const useStore = create<AppState>((set, get) => ({
     set({ ratings, deletedRatingIds, storeDirtyAt: touch() })
     save(LS.ratings, ratings)
     save(LS.deletedRatingIds, deletedRatingIds)
+  },
+
+  setCensorUntilRated(v) {
+    set({ censorUntilRated: v })
+    save(LS.censorUntilRated, v)
+  },
+
+  purgeOrphanRatings() {
+    const { users, ratings, deletedRatingIds } = get()
+    const userIdSet = new Set(users.map(u => u.id))
+    const orphans = ratings.filter(r => !userIdSet.has(r.userId))
+    if (!orphans.length) return
+    const newRatings = ratings.filter(r => userIdSet.has(r.userId))
+    const newDeletedRatingIds = [...deletedRatingIds, ...orphans.map(r => r.id)]
+    set({ ratings: newRatings, deletedRatingIds: newDeletedRatingIds, storeDirtyAt: touch() })
+    save(LS.ratings, newRatings)
+    save(LS.deletedRatingIds, newDeletedRatingIds)
   },
 
   setSyncConfig(config) {
