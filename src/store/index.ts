@@ -39,10 +39,10 @@ function uid() {
 
 function migrateMovie(m: Movie): Movie {
   return {
-    releaseDate: null,
-    interestedUsers: [],
-    lastModified: m.addedAt,
     ...m,
+    releaseDate: m.releaseDate ?? null,
+    interestedUsers: m.interestedUsers ?? [],
+    lastModified: m.lastModified ?? m.addedAt,
   }
 }
 
@@ -112,8 +112,6 @@ export const useStore = create<AppState>((set, get) => ({
     const id = uid()
     const now = new Date().toISOString()
     const movie: Movie = {
-      releaseDate: null,
-      interestedUsers: [],
       ...fields,
       id,
       addedAt: now,
@@ -121,6 +119,8 @@ export const useStore = create<AppState>((set, get) => ({
       watched: fields.watched ?? false,
       watchedAt: fields.watchedAt ?? null,
       attendees: [],
+      interestedUsers: [],
+      releaseDate: fields.releaseDate ?? null,
     }
     const movies = [...get().movies, movie]
     set({ movies, storeDirtyAt: touch() })
