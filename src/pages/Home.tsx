@@ -4,7 +4,7 @@ import { useStore } from '../store'
 import { MoviePoster } from '../components/MoviePoster'
 import { MovieDetailSheet } from '../components/MovieDetailSheet'
 import { ScheduleSheet } from '../components/ScheduleSheet'
-import { IconFilm, IconCalendar, IconAttend, IconEye } from '../components/Icons'
+import { IconFilm, IconCalendar, IconAttend } from '../components/Icons'
 import type { Movie } from '../types'
 
 const TODAY = new Date().toISOString().split('T')[0]
@@ -133,31 +133,16 @@ export function Home() {
             <div className="stat-card__value">{totalMovies}</div>
             <div className="stat-card__label">Movies</div>
           </div>
-          <div className="stat-card">
-            <div className="stat-card__value">{watchedCount}</div>
-            <div className="stat-card__label">Watched</div>
-          </div>
-        </div>
-
-        {/* Recently Watched teaser — passive link to Movies > Watched tab */}
-        {watchedCount > 0 && (
           <button
-            className="btn btn--ghost"
-            style={{
-              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '12px var(--space-md)', borderRadius: 'var(--radius-md)',
-              background: 'var(--color-surface)', border: '1px solid var(--color-border)',
-              marginBottom: 'var(--space-sm)', color: 'var(--color-text-secondary)',
-            }}
+            className="stat-card"
+            style={{ cursor: 'pointer', background: 'none', border: 'none', width: '100%', padding: 'var(--space-md)', textAlign: 'center' }}
             onClick={() => navigate('/upcoming?tab=watched')}
           >
-            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <IconEye size={16} />
-              <span>{watchedCount} movie{watchedCount !== 1 ? 's' : ''} watched</span>
-            </span>
-            <span style={{ fontSize: 13 }}>View all →</span>
+            <div className="stat-card__value">{watchedCount}</div>
+            <div className="stat-card__label">Watched</div>
           </button>
-        )}
+        </div>
+
 
         {/* Coming Up — future scheduled */}
         {comingUp.length > 0 && (
