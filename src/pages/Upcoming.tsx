@@ -142,7 +142,7 @@ export function Upcoming() {
               const notRatedByMe = activeUserId && !ratedByMe.has(m.id) && m.watched
               const isAvailableNow = !m.watched && !m.scheduledDate && m.releaseDate && m.releaseDate <= TODAY
               const showInterest = filter === 'unreleased' || filter === 'unscheduled'
-              const showScheduleBtn = filter === 'unreleased' || filter === 'unscheduled'
+              const showScheduleBtn = filter === 'unreleased' || filter === 'unscheduled' || filter === 'upcoming'
 
               return (
                 <div key={m.id} className="movie-card" onClick={() => setSelected(m)}>
@@ -221,7 +221,7 @@ export function Upcoming() {
                         style={{ fontSize: 12 }}
                         onClick={e => { e.stopPropagation(); setSchedulingMovie(m) }}
                       >
-                        Schedule
+                        {filter === 'upcoming' ? 'Reschedule' : 'Schedule'}
                       </button>
                     )}
                   </div>
