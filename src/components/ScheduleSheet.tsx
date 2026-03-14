@@ -6,20 +6,33 @@ import { IconBack, IconCalendar } from './Icons'
 interface Props {
   movie: Movie
   onClose: () => void
+  mode?: 'schedule' | 'release'
 }
 
 const TODAY = new Date().toISOString().split('T')[0]
 
-export function ScheduleSheet({ movie, onClose }: Props) {
+export function ScheduleSheet({ movie, onClose, mode = 'schedule' }: Props) {
   const { updateMovie, users } = useStore()
-  const [date, setDate] = useState(movie.scheduledDate ?? TODAY)
+
+  const isRelease = mode === 'release'
+  const currentDate = isRelease ? movie.releaseDate : movie.scheduledDate
+  const [date, setDate] = useState(currentDate ?? TODAY)
 
   const interestedUsers = (movie.interestedUsers ?? []).map(id => users.find(u => u.id === id)).filter(Boolean)
+
+  const title = isRelease
+    ? 'Edit Release Date'
+    : currentDate ? 'Reschedule' : 'Schedule Movie'
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!date) return
-    updateMovie(movie.id, { scheduledDate: date })
+    updateMovie(movie.id, isRelease ? { releaseDate: date } : { scheduledDate: date })
+    onClose()
+  }
+
+  function handleUnknown() {
+    updateMovie(movie.id, isRelease ? { releaseDate: null } : { scheduledDate: null })
     onClose()
   }
 
@@ -30,7 +43,7 @@ export function ScheduleSheet({ movie, onClose }: Props) {
         <button className="page-nav__back" onClick={onClose}>
           <IconBack size={20} /> Back
         </button>
-        <div className="page-nav__title">Schedule Movie</div>
+        <div className="page-nav__title">{title}</div>
       </div>
 
       <div className="sheet-body">
@@ -39,7 +52,7 @@ export function ScheduleSheet({ movie, onClose }: Props) {
           {movie.year && <div style={{ color: 'var(--color-text-secondary)', fontSize: 13 }}>{movie.year}</div>}
         </div>
 
-        {interestedUsers.length > 0 && (
+        {!isRelease && interestedUsers.length > 0 && (
           <div style={{ marginBottom: 'var(--space-lg)' }}>
             <div className="section-title" style={{ marginBottom: 'var(--space-sm)' }}>Interested</div>
             <div style={{ display: 'flex', gap: 'var(--space-xs)', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -62,18 +75,28 @@ export function ScheduleSheet({ movie, onClose }: Props) {
         <form id="schedule-form" onSubmit={handleSubmit}>
           <div className="form-group">
             <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <IconCalendar size={14} /> Watch Date
+              <IconCalendar size={14} /> {isRelease ? 'Release Date' : 'Watch Date'}
             </label>
             <input
               type="date"
               value={date}
               onChange={e => setDate(e.target.value)}
-              min={TODAY}
               style={{ maxWidth: 200 }}
               autoFocus
             />
           </div>
         </form>
+
+        <div style={{ marginTop: 'var(--space-md)' }}>
+          <button
+            type="button"
+            className="btn btn--ghost"
+            style={{ color: 'var(--color-text-muted)', fontSize: 13 }}
+            onClick={handleUnknown}
+          >
+            Date Unknown — clear it
+          </button>
+        </div>
       </div>
 
       <div className="sheet-footer">
@@ -82,7 +105,7 @@ export function ScheduleSheet({ movie, onClose }: Props) {
             Cancel
           </button>
           <button type="submit" form="schedule-form" className="btn btn--primary btn--full" disabled={!date}>
-            Schedule
+            {isRelease ? 'Save Date' : currentDate ? 'Reschedule' : 'Schedule'}
           </button>
         </div>
       </div>

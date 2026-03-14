@@ -3,8 +3,18 @@ import { useStore } from '../store'
 import type { Movie } from '../types'
 import { MoviePoster } from './MoviePoster'
 import { RateMovieSheet } from './RateMovieSheet'
+import { ScheduleSheet } from './ScheduleSheet'
 import { useAllMovieStats } from '../hooks/useMovieStats'
 import { IconStar, IconCheck, IconCalendar, IconTrash, IconBack } from './Icons'
+
+function IconPencil({ size = 14 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+    </svg>
+  )
+}
 
 interface Props {
   movie: Movie
@@ -20,6 +30,8 @@ function formatDate(d: string) {
 export function MovieDetailSheet({ movie, onClose }: Props) {
   const { deleteMovie, deleteRating, markWatched, markUnwatched, toggleAttendance, users, ratings, movies, activeUserId } = useStore()
   const [showRate, setShowRate] = useState(false)
+  const [showSchedule, setShowSchedule] = useState(false)
+  const [showEditRelease, setShowEditRelease] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [confirmRemoveRating, setConfirmRemoveRating] = useState(false)
   const statsMap = useAllMovieStats(movies, ratings)
@@ -34,6 +46,12 @@ export function MovieDetailSheet({ movie, onClose }: Props) {
 
   if (showRate) {
     return <RateMovieSheet movie={liveMovie} onClose={() => setShowRate(false)} />
+  }
+  if (showSchedule) {
+    return <ScheduleSheet movie={liveMovie} onClose={() => setShowSchedule(false)} />
+  }
+  if (showEditRelease) {
+    return <ScheduleSheet movie={liveMovie} mode="release" onClose={() => setShowEditRelease(false)} />
   }
 
   const movieRatings = ratings.filter(r => r.movieId === liveMovie.id)
@@ -82,12 +100,30 @@ export function MovieDetailSheet({ movie, onClose }: Props) {
                     <span style={{ fontSize: 12 }}>Out {formatDate(liveMovie.releaseDate)}</span>
                   </div>
                 )}
+                <button
+                  className="btn btn--ghost btn--sm"
+                  style={{ padding: '2px 4px', color: 'var(--color-text-muted)' }}
+                  onClick={() => setShowEditRelease(true)}
+                  title="Edit release date"
+                >
+                  <IconPencil size={12} />
+                </button>
               </div>
             )}
             {liveMovie.scheduledDate && !liveMovie.watched && (
-              <div className="movie-scheduled" style={{ marginTop: 'var(--space-sm)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                <IconCalendar size={12} />
-                {formatDate(liveMovie.scheduledDate)}
+              <div style={{ marginTop: 'var(--space-sm)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div className="movie-scheduled" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <IconCalendar size={12} />
+                  {formatDate(liveMovie.scheduledDate)}
+                </div>
+                <button
+                  className="btn btn--ghost btn--sm"
+                  style={{ padding: '2px 4px', color: 'var(--color-text-muted)' }}
+                  onClick={() => setShowSchedule(true)}
+                  title="Reschedule"
+                >
+                  <IconPencil size={12} />
+                </button>
               </div>
             )}
             {liveMovie.watched && (
