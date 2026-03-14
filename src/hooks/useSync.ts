@@ -99,7 +99,7 @@ function mergeData(local: RemoteData, remote: RemoteData, deletedUserIds: string
 }
 
 export function useSync() {
-  const { syncConfig, users, movies, ratings, deletedUserIds, deletedMovieIds, deletedRatingIds, replaceAll, setSyncConfig, storeDirtyAt } = useStore()
+  const { syncConfig, storeDirtyAt, replaceAll, setSyncConfig } = useStore()
   const [syncing, setSyncing] = useState(false)
   const [lastSynced, setLastSynced] = useState<string | null>(() => localStorage.getItem('cine-scores:lastSynced'))
   const [error, setError] = useState<string | null>(null)
@@ -112,6 +112,9 @@ export function useSync() {
     setError(null)
     try {
       const { pat, owner, repo, branch } = syncConfig
+
+      // Read fresh state at sync time to avoid stale closure dropping recent mutations
+      const { users, movies, ratings, deletedUserIds, deletedMovieIds, deletedRatingIds } = useStore.getState()
 
       const [uf, mf, rf] = await Promise.all([
         ghFetch(pat, owner, repo, branch, 'data/users.json'),
@@ -153,7 +156,7 @@ export function useSync() {
     } finally {
       setSyncing(false)
     }
-  }, [syncConfig, users, movies, ratings, deletedUserIds, deletedMovieIds, deletedRatingIds, replaceAll])
+  }, [syncConfig, syncing, replaceAll])
 
   // Auto-sync when user returns to the tab if there are pending local changes
   useEffect(() => {
