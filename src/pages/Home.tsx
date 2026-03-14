@@ -14,7 +14,7 @@ function formatDate(d: string) {
 }
 
 export function Home() {
-  const { movies, users, activeUserId, toggleAttendance, toggleInterest } = useStore()
+  const { movies, users, ratings, activeUserId, toggleAttendance, toggleInterest } = useStore()
   const [selected, setSelected] = useState<Movie | null>(null)
   const [schedulingMovie, setSchedulingMovie] = useState<Movie | null>(null)
   const navigate = useNavigate()
@@ -49,6 +49,7 @@ export function Home() {
 
   const watchedCount = movies.filter(m => m.watched).length
   const totalMovies = movies.length
+  const ratingsCount = ratings.length
 
   function AttendButton({ movie }: { movie: Movie }) {
     const going = activeUserId ? (movie.attendees ?? []).includes(activeUserId) : false
@@ -133,13 +134,13 @@ export function Home() {
             <div className="stat-card__value">{totalMovies}</div>
             <div className="stat-card__label">Movies</div>
           </div>
-          <button
-            className="stat-card"
-            style={{ cursor: 'pointer', background: 'none', border: 'none', width: '100%', padding: 'var(--space-md)', textAlign: 'center' }}
-            onClick={() => navigate('/upcoming?tab=watched')}
-          >
+          <button className="stat-card stat-card--btn" onClick={() => navigate('/upcoming?tab=watched')}>
             <div className="stat-card__value">{watchedCount}</div>
             <div className="stat-card__label">Watched</div>
+          </button>
+          <button className="stat-card stat-card--btn" onClick={() => navigate('/ratings')}>
+            <div className="stat-card__value">{ratingsCount}</div>
+            <div className="stat-card__label">Ratings</div>
           </button>
         </div>
 
