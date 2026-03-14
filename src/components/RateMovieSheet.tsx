@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../store'
+import { useSync } from '../hooks/useSync'
 import type { Movie } from '../types'
 import { MoviePoster } from './MoviePoster'
 import { IconBack } from './Icons'
@@ -11,6 +12,7 @@ interface Props {
 
 export function RateMovieSheet({ movie, onClose }: Props) {
   const { addRating, deleteRating, ratings, activeUserId, users, censorUntilRated } = useStore()
+  const { sync } = useSync()
   const existing = ratings.find(r => r.movieId === movie.id && r.userId === activeUserId)
   const [score, setScore] = useState(existing?.score ?? 7)
   const [hovered, setHovered] = useState<number | null>(null)
@@ -25,6 +27,7 @@ export function RateMovieSheet({ movie, onClose }: Props) {
     e.preventDefault()
     if (!activeUserId) return
     addRating({ movieId: movie.id, userId: activeUserId, score, review })
+    sync()
     setSaved(true)
     setTimeout(onClose, 1000)
   }
@@ -32,6 +35,7 @@ export function RateMovieSheet({ movie, onClose }: Props) {
   function handleRemoveRating() {
     if (!existing) return
     deleteRating(existing.id)
+    sync()
     onClose()
   }
 
