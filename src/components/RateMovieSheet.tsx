@@ -10,7 +10,7 @@ interface Props {
 }
 
 export function RateMovieSheet({ movie, onClose }: Props) {
-  const { addRating, deleteRating, ratings, activeUserId, users } = useStore()
+  const { addRating, deleteRating, ratings, activeUserId, users, censorUntilRated } = useStore()
   const existing = ratings.find(r => r.movieId === movie.id && r.userId === activeUserId)
   const [score, setScore] = useState(existing?.score ?? 7)
   const [hovered, setHovered] = useState<number | null>(null)
@@ -119,7 +119,7 @@ export function RateMovieSheet({ movie, onClose }: Props) {
           </div>
         )}
 
-        <OtherRatings movieId={movie.id} excludeUserId={activeUserId ?? ''} />
+        <OtherRatings movieId={movie.id} excludeUserId={activeUserId ?? ''} censored={censorUntilRated && !existing} />
       </div>
 
       <div className="sheet-footer">
@@ -148,10 +148,21 @@ export function RateMovieSheet({ movie, onClose }: Props) {
   )
 }
 
-function OtherRatings({ movieId, excludeUserId }: { movieId: string; excludeUserId: string }) {
+function OtherRatings({ movieId, excludeUserId, censored }: { movieId: string; excludeUserId: string; censored: boolean }) {
   const { ratings, users } = useStore()
   const others = ratings.filter(r => r.movieId === movieId && r.userId !== excludeUserId)
   if (!others.length) return null
+
+  if (censored) {
+    return (
+      <div style={{ marginTop: 'var(--space-xl)' }}>
+        <div className="section-title">Friends' Ratings</div>
+        <div style={{ fontSize: 14, color: 'var(--color-text-muted)', padding: 'var(--space-md) 0' }}>
+          Rate this movie to see how your friends scored it.
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div style={{ marginTop: 'var(--space-xl)' }}>

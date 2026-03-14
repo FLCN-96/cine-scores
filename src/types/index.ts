@@ -73,6 +73,11 @@ export interface AppState {
   updateRating: (id: string, patch: Partial<Omit<Rating, 'id'>>) => void
   deleteRating: (id: string) => void
 
+  // Ratings preferences
+  censorUntilRated: boolean
+  setCensorUntilRated: (v: boolean) => void
+  purgeOrphanRatings: () => void
+
   // Sync actions
   setSyncConfig: (config: SyncConfig | null) => void
   setTmdbApiKey: (key: string | null) => void

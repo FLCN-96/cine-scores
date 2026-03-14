@@ -28,7 +28,7 @@ function formatDate(d: string) {
 }
 
 export function MovieDetailSheet({ movie, onClose }: Props) {
-  const { deleteMovie, deleteRating, markWatched, markUnwatched, toggleAttendance, users, ratings, movies, activeUserId } = useStore()
+  const { deleteMovie, deleteRating, markWatched, markUnwatched, toggleAttendance, users, ratings, movies, activeUserId, censorUntilRated } = useStore()
   const [showRate, setShowRate] = useState(false)
   const [showSchedule, setShowSchedule] = useState(false)
   const [showEditRelease, setShowEditRelease] = useState(false)
@@ -43,6 +43,7 @@ export function MovieDetailSheet({ movie, onClose }: Props) {
   const iAmGoing = activeUserId ? attendees.includes(activeUserId) : false
 
   const myRating = activeUserId ? ratings.find(r => r.movieId === liveMovie.id && r.userId === activeUserId) : null
+  const myCensored = censorUntilRated && !myRating
 
   if (showRate) {
     return <RateMovieSheet movie={liveMovie} onClose={() => setShowRate(false)} />
@@ -82,11 +83,18 @@ export function MovieDetailSheet({ movie, onClose }: Props) {
             <div className="sheet-movie-sub">
               {[liveMovie.year, liveMovie.genre].filter(Boolean).join(' · ')}
             </div>
-            {stats.avg !== null && (
+            {stats.avg !== null && !myCensored && (
               <div className="sheet-movie-score">
                 <span style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-primary)' }}>{stats.avg}</span>
                 <span style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
                   / 10 · {stats.count} rating{stats.count !== 1 ? 's' : ''}
+                </span>
+              </div>
+            )}
+            {myCensored && stats.count > 0 && (
+              <div className="sheet-movie-score">
+                <span style={{ fontSize: 14, color: 'var(--color-text-muted)' }}>
+                  Rate to reveal {stats.count} score{stats.count !== 1 ? 's' : ''}
                 </span>
               </div>
             )}
@@ -178,45 +186,51 @@ export function MovieDetailSheet({ movie, onClose }: Props) {
         {movieRatings.length > 0 && (
           <div>
             <div className="section-title">All Ratings</div>
-            {movieRatings.map(r => {
-              const user = users.find(u => u.id === r.userId)
-              const isMyRating = r.userId === activeUserId
-              return (
-                <div key={r.id} className="row-item">
-                  <div className="avatar" style={{ background: user?.color ?? '#555', width: 32, height: 32, fontSize: 12 }}>
-                    {user?.name.charAt(0).toUpperCase() ?? '?'}
-                  </div>
-                  <div className="row-item__body">
-                    <div className="row-item__title">{user?.name ?? 'Unknown'}</div>
-                    {r.review && <div className="row-item__subtitle">"{r.review}"</div>}
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-                    <div style={{
-                      fontWeight: 800, fontSize: 22,
-                      color: r.score >= 8 ? 'var(--color-success)' : r.score >= 5 ? 'var(--color-accent)' : 'var(--color-danger)'
-                    }}>
-                      {r.score}
+            {myCensored ? (
+              <div style={{ fontSize: 14, color: 'var(--color-text-muted)', padding: 'var(--space-md) 0' }}>
+                Rate this movie to see everyone's scores.
+              </div>
+            ) : (
+              movieRatings.map(r => {
+                const user = users.find(u => u.id === r.userId)
+                const isMyRating = r.userId === activeUserId
+                return (
+                  <div key={r.id} className="row-item">
+                    <div className="avatar" style={{ background: user?.color ?? '#555', width: 32, height: 32, fontSize: 12 }}>
+                      {user?.name.charAt(0).toUpperCase() ?? '?'}
                     </div>
-                    {isMyRating && (
-                      confirmRemoveRating ? (
-                        <div style={{ display: 'flex', gap: 4 }}>
-                          <button className="btn btn--secondary btn--sm" style={{ fontSize: 11 }} onClick={() => setConfirmRemoveRating(false)}>Cancel</button>
-                          <button className="btn btn--danger btn--sm" style={{ fontSize: 11 }} onClick={() => { deleteRating(r.id); setConfirmRemoveRating(false) }}>Remove</button>
-                        </div>
-                      ) : (
-                        <button
-                          className="btn btn--ghost btn--sm"
-                          style={{ fontSize: 11, color: 'var(--color-danger)' }}
-                          onClick={() => setConfirmRemoveRating(true)}
-                        >
-                          Remove
-                        </button>
-                      )
-                    )}
+                    <div className="row-item__body">
+                      <div className="row-item__title">{user?.name ?? 'Unknown'}</div>
+                      {r.review && <div className="row-item__subtitle">"{r.review}"</div>}
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+                      <div style={{
+                        fontWeight: 800, fontSize: 22,
+                        color: r.score >= 8 ? 'var(--color-success)' : r.score >= 5 ? 'var(--color-accent)' : 'var(--color-danger)'
+                      }}>
+                        {r.score}
+                      </div>
+                      {isMyRating && (
+                        confirmRemoveRating ? (
+                          <div style={{ display: 'flex', gap: 4 }}>
+                            <button className="btn btn--secondary btn--sm" style={{ fontSize: 11 }} onClick={() => setConfirmRemoveRating(false)}>Cancel</button>
+                            <button className="btn btn--danger btn--sm" style={{ fontSize: 11 }} onClick={() => { deleteRating(r.id); setConfirmRemoveRating(false) }}>Remove</button>
+                          </div>
+                        ) : (
+                          <button
+                            className="btn btn--ghost btn--sm"
+                            style={{ fontSize: 11, color: 'var(--color-danger)' }}
+                            onClick={() => setConfirmRemoveRating(true)}
+                          >
+                            Remove
+                          </button>
+                        )
+                      )}
+                    </div>
                   </div>
-                </div>
-              )
-            })}
+                )
+              })
+            )}
           </div>
         )}
 
