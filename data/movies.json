@@ -28,7 +28,25 @@
     "watchedAt": null,
     "id": "1773525125492-cgsjh22",
     "addedAt": "2026-03-14T21:52:05.492Z",
-    "lastModified": "2026-03-14T21:52:05.492Z",
+    "lastModified": "2026-03-14T22:09:00.512Z",
+    "attendees": [],
+    "interestedUsers": []
+  },
+  {
+    "title": "Hokum",
+    "year": 2026,
+    "genre": "Horror",
+    "description": "When novelist Ohm Bauman retreats to a remote inn to scatter his parents' ashes, he is consumed by tales of a witch haunting the honeymoon suite. Disturbing visions and a shocking disappearance forces him to confront dark corners of his past.",
+    "posterUrl": "https://image.tmdb.org/t/p/w500/gC4FtEthYvx6XV2JHCQibf4P3FT.jpg",
+    "releaseDate": "2026-04-30",
+    "scheduledDate": null,
+    "addedBy": "1773294758915-gqqcz75",
+    "tmdbId": 1430077,
+    "watched": false,
+    "watchedAt": null,
+    "id": "1773526098631-ko2z73c",
+    "addedAt": "2026-03-14T22:08:18.631Z",
+    "lastModified": "2026-03-14T22:08:18.631Z",
     "attendees": [],
     "interestedUsers": []
   }
