@@ -12,6 +12,7 @@ export interface Movie {
   genre: string
   posterUrl: string
   description: string
+  releaseDate: string | null
   scheduledDate: string | null
   addedBy: string
   addedAt: string
@@ -19,6 +20,8 @@ export interface Movie {
   watched: boolean
   watchedAt: string | null
   attendees: string[]
+  interestedUsers: string[]
+  lastModified: string
 }
 
 export interface Rating {
@@ -48,7 +51,7 @@ export interface AppState {
   deletedMovieIds: string[]
   deletedRatingIds: string[]
   hydrated: boolean
-  lastModified: string | null
+  storeDirtyAt: string | null
 
   // User actions
   addUser: (user: Omit<User, 'id' | 'createdAt'>) => void
@@ -57,12 +60,13 @@ export interface AppState {
   setActiveUser: (id: string) => void
 
   // Movie actions
-  addMovie: (movie: Omit<Movie, 'id' | 'addedAt' | 'attendees'> & { watched?: boolean; watchedAt?: string | null }) => string
+  addMovie: (movie: Omit<Movie, 'id' | 'addedAt' | 'attendees' | 'interestedUsers' | 'lastModified'> & { watched?: boolean; watchedAt?: string | null }) => string
   updateMovie: (id: string, patch: Partial<Omit<Movie, 'id'>>) => void
   deleteMovie: (id: string) => void
   markWatched: (id: string) => void
   markUnwatched: (id: string) => void
   toggleAttendance: (movieId: string) => void
+  toggleInterest: (movieId: string) => void
 
   // Rating actions
   addRating: (rating: Omit<Rating, 'id' | 'ratedAt'>) => void

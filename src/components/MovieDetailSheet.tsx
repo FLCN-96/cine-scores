@@ -11,26 +11,39 @@ interface Props {
   onClose: () => void
 }
 
+const TODAY = new Date().toISOString().split('T')[0]
+
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 export function MovieDetailSheet({ movie, onClose }: Props) {
-  const { deleteMovie, markWatched, markUnwatched, toggleAttendance, users, ratings, movies, activeUserId } = useStore()
+  const { deleteMovie, deleteRating, markWatched, markUnwatched, toggleAttendance, users, ratings, movies, activeUserId } = useStore()
   const [showRate, setShowRate] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [confirmRemoveRating, setConfirmRemoveRating] = useState(false)
   const statsMap = useAllMovieStats(movies, ratings)
 
   const liveMovie = movies.find(m => m.id === movie.id) ?? movie
   const stats = statsMap[liveMovie.id]
   const attendees = liveMovie.attendees ?? []
+  const interestedUsers = liveMovie.interestedUsers ?? []
   const iAmGoing = activeUserId ? attendees.includes(activeUserId) : false
+
+  const myRating = activeUserId ? ratings.find(r => r.movieId === liveMovie.id && r.userId === activeUserId) : null
 
   if (showRate) {
     return <RateMovieSheet movie={liveMovie} onClose={() => setShowRate(false)} />
   }
 
   const movieRatings = ratings.filter(r => r.movieId === liveMovie.id)
+
+  const isAvailableNow = !liveMovie.watched && !liveMovie.scheduledDate && liveMovie.releaseDate && liveMovie.releaseDate <= TODAY
+
+  function handleMarkWatched() {
+    markWatched(liveMovie.id)
+    setShowRate(true)
+  }
 
   return (
     <div className="page-view">
@@ -59,6 +72,18 @@ export function MovieDetailSheet({ movie, onClose }: Props) {
                 </span>
               </div>
             )}
+            {liveMovie.releaseDate && !liveMovie.watched && (
+              <div style={{ marginTop: 'var(--space-sm)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                {isAvailableNow ? (
+                  <span className="badge badge--available">Now Available</span>
+                ) : (
+                  <div className="movie-scheduled" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <IconCalendar size={12} />
+                    <span style={{ fontSize: 12 }}>Out {formatDate(liveMovie.releaseDate)}</span>
+                  </div>
+                )}
+              </div>
+            )}
             {liveMovie.scheduledDate && !liveMovie.watched && (
               <div className="movie-scheduled" style={{ marginTop: 'var(--space-sm)', display: 'flex', alignItems: 'center', gap: 4 }}>
                 <IconCalendar size={12} />
@@ -82,7 +107,23 @@ export function MovieDetailSheet({ movie, onClose }: Props) {
 
         {!liveMovie.watched && (
           <div style={{ marginBottom: 'var(--space-md)' }}>
-            {attendees.length > 0 && (
+            {/* Interested users — show on all non-watched movies */}
+            {interestedUsers.length > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xs)', marginBottom: 'var(--space-sm)', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginRight: 2 }}>Interested:</span>
+                {interestedUsers.map(uid => {
+                  const u = users.find(u => u.id === uid)
+                  return u ? (
+                    <div key={uid} title={u.name} className="avatar" style={{ background: u.color, width: 28, height: 28, fontSize: 12 }}>
+                      {u.name.charAt(0).toUpperCase()}
+                    </div>
+                  ) : null
+                })}
+              </div>
+            )}
+
+            {/* Attending users — show only for scheduled movies */}
+            {liveMovie.scheduledDate && attendees.length > 0 && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xs)', marginBottom: 'var(--space-sm)', flexWrap: 'wrap' }}>
                 <span style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginRight: 2 }}>Going:</span>
                 {attendees.map(uid => {
@@ -103,6 +144,7 @@ export function MovieDetailSheet({ movie, onClose }: Props) {
             <div className="section-title">All Ratings</div>
             {movieRatings.map(r => {
               const user = users.find(u => u.id === r.userId)
+              const isMyRating = r.userId === activeUserId
               return (
                 <div key={r.id} className="row-item">
                   <div className="avatar" style={{ background: user?.color ?? '#555', width: 32, height: 32, fontSize: 12 }}>
@@ -112,11 +154,29 @@ export function MovieDetailSheet({ movie, onClose }: Props) {
                     <div className="row-item__title">{user?.name ?? 'Unknown'}</div>
                     {r.review && <div className="row-item__subtitle">"{r.review}"</div>}
                   </div>
-                  <div style={{
-                    fontWeight: 800, fontSize: 22,
-                    color: r.score >= 8 ? 'var(--color-success)' : r.score >= 5 ? 'var(--color-accent)' : 'var(--color-danger)'
-                  }}>
-                    {r.score}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+                    <div style={{
+                      fontWeight: 800, fontSize: 22,
+                      color: r.score >= 8 ? 'var(--color-success)' : r.score >= 5 ? 'var(--color-accent)' : 'var(--color-danger)'
+                    }}>
+                      {r.score}
+                    </div>
+                    {isMyRating && (
+                      confirmRemoveRating ? (
+                        <div style={{ display: 'flex', gap: 4 }}>
+                          <button className="btn btn--secondary btn--sm" style={{ fontSize: 11 }} onClick={() => setConfirmRemoveRating(false)}>Cancel</button>
+                          <button className="btn btn--danger btn--sm" style={{ fontSize: 11 }} onClick={() => { deleteRating(r.id); setConfirmRemoveRating(false) }}>Remove</button>
+                        </div>
+                      ) : (
+                        <button
+                          className="btn btn--ghost btn--sm"
+                          style={{ fontSize: 11, color: 'var(--color-danger)' }}
+                          onClick={() => setConfirmRemoveRating(true)}
+                        >
+                          Remove
+                        </button>
+                      )
+                    )}
                   </div>
                 </div>
               )
@@ -128,7 +188,9 @@ export function MovieDetailSheet({ movie, onClose }: Props) {
 
         {confirmDelete ? (
           <div className="confirm-row">
-            <span style={{ flex: 1, fontSize: 14, color: 'var(--color-text-secondary)' }}>Delete this movie?</span>
+            <span style={{ flex: 1, fontSize: 14, color: 'var(--color-text-secondary)' }}>
+              Delete this movie and all its ratings?
+            </span>
             <button className="btn btn--secondary btn--sm" onClick={() => setConfirmDelete(false)}>Cancel</button>
             <button className="btn btn--danger btn--sm" onClick={() => { deleteMovie(liveMovie.id); onClose() }}>Delete</button>
           </div>
@@ -148,11 +210,11 @@ export function MovieDetailSheet({ movie, onClose }: Props) {
           <button
             className="btn btn--primary btn--full"
             style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
-            onClick={() => setShowRate(true)}
+            onClick={() => myRating ? setShowRate(true) : setShowRate(true)}
           >
-            <IconStar size={15} filled /> Rate This
+            <IconStar size={15} filled /> {myRating ? 'Edit Rating' : 'Rate This'}
           </button>
-          {!liveMovie.watched && (
+          {!liveMovie.watched && liveMovie.scheduledDate && (
             <button
               className="btn btn--full"
               style={{
@@ -164,14 +226,14 @@ export function MovieDetailSheet({ movie, onClose }: Props) {
               }}
               onClick={() => toggleAttendance(liveMovie.id)}
             >
-              <IconCheck size={15} /> {iAmGoing ? 'Going' : "I'm Going"}
+              <IconCheck size={15} /> {iAmGoing ? 'Going ✓' : "I'm Going"}
             </button>
           )}
           {!liveMovie.watched && (
             <button
               className="btn btn--full"
               style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: 'var(--color-surface)', border: '1.5px solid var(--color-border)', color: 'var(--color-text)' }}
-              onClick={() => markWatched(liveMovie.id)}
+              onClick={handleMarkWatched}
             >
               <IconCheck size={15} /> Watched
             </button>

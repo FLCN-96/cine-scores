@@ -3,6 +3,7 @@ import { useStore } from '../store'
 import { MoviePoster } from '../components/MoviePoster'
 import { MovieDetailSheet } from '../components/MovieDetailSheet'
 import { RateMovieSheet } from '../components/RateMovieSheet'
+import { ScheduleSheet } from '../components/ScheduleSheet'
 import { IconFilm, IconCalendar, IconStar, IconAttend } from '../components/Icons'
 import type { Movie } from '../types'
 
@@ -13,13 +14,14 @@ function formatDate(d: string) {
 }
 
 export function Home() {
-  const { movies, users, ratings, activeUserId, toggleAttendance, updateMovie } = useStore()
+  const { movies, users, ratings, activeUserId, toggleAttendance, toggleInterest } = useStore()
   const [selected, setSelected] = useState<Movie | null>(null)
   const [ratingMovie, setRatingMovie] = useState<Movie | null>(null)
+  const [schedulingMovie, setSchedulingMovie] = useState<Movie | null>(null)
 
   const activeUser = users.find(u => u.id === activeUserId)
 
-  const { rateThese, comingUp, proposed } = useMemo(() => {
+  const { rateThese, comingUp, notReleased, wantToWatch } = useMemo(() => {
     const ratedMovieIds = new Set(
       ratings.filter(r => r.userId === activeUserId).map(r => r.movieId)
     )
@@ -39,12 +41,24 @@ export function Home() {
       !m.watched && m.scheduledDate !== null && m.scheduledDate >= TODAY
     ).sort((a, b) => new Date(a.scheduledDate!).getTime() - new Date(b.scheduledDate!).getTime())
 
-    // Proposed: no date, not watched
-    const proposed = movies.filter(m =>
-      !m.watched && !m.scheduledDate
+    // Not released yet: has releaseDate, no scheduledDate, not watched
+    const notReleased = movies.filter(m =>
+      !m.watched && !m.scheduledDate && m.releaseDate !== null
+    ).sort((a, b) => {
+      // Available now first, then by release date
+      const aAvail = a.releaseDate && a.releaseDate <= TODAY
+      const bAvail = b.releaseDate && b.releaseDate <= TODAY
+      if (aAvail && !bAvail) return -1
+      if (!aAvail && bAvail) return 1
+      return new Date(a.releaseDate!).getTime() - new Date(b.releaseDate!).getTime()
+    })
+
+    // Want to watch: no releaseDate, no scheduledDate, not watched
+    const wantToWatch = movies.filter(m =>
+      !m.watched && !m.scheduledDate && !m.releaseDate
     ).sort((a, b) => new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime())
 
-    return { rateThese, comingUp, proposed }
+    return { rateThese, comingUp, notReleased, wantToWatch }
   }, [movies, ratings, activeUserId])
 
   const watchedCount = movies.filter(m => m.watched).length
@@ -69,12 +83,43 @@ export function Home() {
     )
   }
 
+  function InterestButton({ movie }: { movie: Movie }) {
+    const interested = activeUserId ? (movie.interestedUsers ?? []).includes(activeUserId) : false
+    const count = (movie.interestedUsers ?? []).length
+    return (
+      <button
+        className={`btn btn--sm interest-btn${interested ? ' interest-btn--active' : ''}`}
+        onClick={e => { e.stopPropagation(); if (activeUserId) toggleInterest(movie.id) }}
+        title={interested ? 'Remove interest' : 'Mark as interested'}
+      >
+        {interested ? '♥' : '♡'}{count > 0 ? ` ${count}` : ''}
+      </button>
+    )
+  }
+
   function AttendeeAvatars({ movie }: { movie: Movie }) {
     const attendees = movie.attendees ?? []
     if (!attendees.length) return null
     return (
       <div style={{ display: 'flex', gap: 2, marginTop: 4 }}>
         {attendees.map(uid => {
+          const u = users.find(u => u.id === uid)
+          return u ? (
+            <div key={uid} title={u.name} className="avatar" style={{ background: u.color, width: 18, height: 18, fontSize: 9 }}>
+              {u.name.charAt(0).toUpperCase()}
+            </div>
+          ) : null
+        })}
+      </div>
+    )
+  }
+
+  function InterestedAvatars({ movie }: { movie: Movie }) {
+    const interested = movie.interestedUsers ?? []
+    if (!interested.length) return null
+    return (
+      <div style={{ display: 'flex', gap: 2, marginTop: 4 }}>
+        {interested.map(uid => {
           const u = users.find(u => u.id === uid)
           return u ? (
             <div key={uid} title={u.name} className="avatar" style={{ background: u.color, width: 18, height: 18, fontSize: 9 }}>
@@ -162,31 +207,67 @@ export function Home() {
           </div>
         )}
 
-        {/* Proposed — no date yet */}
-        {proposed.length > 0 && (
+        {/* Not Released Yet — has releaseDate, no scheduledDate */}
+        {notReleased.length > 0 && (
           <div className="section">
-            <div className="section-title">Proposed</div>
-            {proposed.map(m => (
+            <div className="section-title">Not Released Yet</div>
+            {notReleased.map(m => {
+              const isAvailableNow = m.releaseDate && m.releaseDate <= TODAY
+              return (
+                <div key={m.id} className="movie-card" onClick={() => setSelected(m)}>
+                  <MoviePoster posterUrl={m.posterUrl} title={m.title} />
+                  <div className="movie-info">
+                    <div className="movie-title">{m.title}</div>
+                    <div className="movie-meta">{[m.year, m.genre].filter(Boolean).join(' · ')}</div>
+                    {isAvailableNow ? (
+                      <span className="badge badge--available" style={{ marginTop: 4 }}>Now Available</span>
+                    ) : m.releaseDate ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, marginTop: 4, color: 'var(--color-text-secondary)' }}>
+                        <IconCalendar size={11} />Out {formatDate(m.releaseDate)}
+                      </div>
+                    ) : null}
+                    <InterestedAvatars movie={m} />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0, alignItems: 'flex-end' }}>
+                    <InterestButton movie={m} />
+                    {isAvailableNow && (
+                      <button
+                        className="btn btn--sm btn--ghost"
+                        style={{ fontSize: 12 }}
+                        onClick={e => { e.stopPropagation(); setSchedulingMovie(m) }}
+                      >
+                        Schedule
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {/* Want to Watch — backlog (no releaseDate, no scheduledDate) */}
+        {wantToWatch.length > 0 && (
+          <div className="section">
+            <div className="section-title">Want to Watch</div>
+            {wantToWatch.map(m => (
               <div key={m.id} className="movie-card" onClick={() => setSelected(m)}>
                 <MoviePoster posterUrl={m.posterUrl} title={m.title} />
                 <div className="movie-info">
                   <div className="movie-title">{m.title}</div>
                   <div className="movie-meta">{[m.year, m.genre].filter(Boolean).join(' · ')}</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }} onClick={e => e.stopPropagation()}>
-                    <span style={{ flexShrink: 0, color: 'var(--color-text-muted)', lineHeight: 0 }}><IconCalendar size={11} /></span>
-                    <input
-                      type="date"
-                      style={{ fontSize: 12, padding: '2px 6px', maxWidth: 150, height: 28 }}
-                      onClick={e => e.stopPropagation()}
-                      onChange={e => {
-                        if (e.target.value) updateMovie(m.id, { scheduledDate: e.target.value })
-                      }}
-                      title="Set a watch date"
-                    />
-                  </div>
-                  <AttendeeAvatars movie={m} />
+                  <InterestedAvatars movie={m} />
                 </div>
-                <AttendButton movie={m} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0, alignItems: 'flex-end' }}>
+                  <InterestButton movie={m} />
+                  <button
+                    className="btn btn--sm btn--ghost"
+                    style={{ fontSize: 12 }}
+                    onClick={e => { e.stopPropagation(); setSchedulingMovie(m) }}
+                  >
+                    Schedule
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -199,7 +280,7 @@ export function Home() {
           </div>
         )}
 
-        {movies.length > 0 && rateThese.length === 0 && comingUp.length === 0 && proposed.length === 0 && (
+        {movies.length > 0 && rateThese.length === 0 && comingUp.length === 0 && notReleased.length === 0 && wantToWatch.length === 0 && (
           <div className="empty-state">
             <div className="empty-state__icon"><IconFilm size={44} /></div>
             <div className="empty-state__text">All caught up!</div>
@@ -209,6 +290,7 @@ export function Home() {
 
       {selected && <MovieDetailSheet movie={selected} onClose={() => setSelected(null)} />}
       {ratingMovie && <RateMovieSheet movie={ratingMovie} onClose={() => setRatingMovie(null)} />}
+      {schedulingMovie && <ScheduleSheet movie={schedulingMovie} onClose={() => setSchedulingMovie(null)} />}
     </div>
   )
 }
