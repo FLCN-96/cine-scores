@@ -15,24 +15,6 @@
     "attendees": []
   },
   {
-    "title": "Obsession",
-    "year": 2026,
-    "genre": "Horror",
-    "description": "After breaking the mysterious \"One Wish Willow\" to win his crush's heart, a hopeless romantic finds himself getting exactly what he asked for but soon discovers that some desires come at a dark, sinister price.",
-    "posterUrl": "https://image.tmdb.org/t/p/w500/bRwnj8WEKBCvmfeUNOukJPwB43K.jpg",
-    "releaseDate": null,
-    "scheduledDate": "2026-05-15",
-    "addedBy": "1773294758915-gqqcz75",
-    "tmdbId": 1339713,
-    "watched": false,
-    "watchedAt": null,
-    "id": "1773525125492-cgsjh22",
-    "addedAt": "2026-03-14T21:52:05.492Z",
-    "lastModified": "2026-03-14T22:09:00.512Z",
-    "attendees": [],
-    "interestedUsers": []
-  },
-  {
     "title": "Hokum",
     "year": 2026,
     "genre": "Horror",
@@ -47,6 +29,24 @@
     "id": "1773526098631-ko2z73c",
     "addedAt": "2026-03-14T22:08:18.631Z",
     "lastModified": "2026-03-14T22:08:18.631Z",
+    "attendees": [],
+    "interestedUsers": []
+  },
+  {
+    "title": "Obsession",
+    "year": 2026,
+    "genre": "Horror",
+    "description": "After breaking the mysterious \"One Wish Willow\" to win his crush's heart, a hopeless romantic finds himself getting exactly what he asked for but soon discovers that some desires come at a dark, sinister price.",
+    "posterUrl": "https://image.tmdb.org/t/p/w500/bRwnj8WEKBCvmfeUNOukJPwB43K.jpg",
+    "releaseDate": "2026-05-13",
+    "scheduledDate": null,
+    "addedBy": "1773294758915-gqqcz75",
+    "tmdbId": 1339713,
+    "watched": false,
+    "watchedAt": null,
+    "id": "1773526466225-j02dcep",
+    "addedAt": "2026-03-14T22:14:26.225Z",
+    "lastModified": "2026-03-14T22:14:26.225Z",
     "attendees": [],
     "interestedUsers": []
   }
