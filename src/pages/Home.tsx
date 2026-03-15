@@ -189,15 +189,13 @@ export function Home() {
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0, alignItems: 'flex-end' }}>
                     <InterestButton movie={m} />
-                    {isAvailableNow && (
-                      <button
-                        className="btn btn--sm btn--ghost"
-                        style={{ fontSize: 12 }}
-                        onClick={e => { e.stopPropagation(); setSchedulingMovie(m) }}
-                      >
-                        Schedule
-                      </button>
-                    )}
+                    <button
+                      className="btn btn--sm btn--ghost"
+                      style={{ fontSize: 12 }}
+                      onClick={e => { e.stopPropagation(); setSchedulingMovie(m) }}
+                    >
+                      Schedule
+                    </button>
                   </div>
                 </div>
               )

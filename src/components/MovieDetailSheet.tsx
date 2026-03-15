@@ -279,6 +279,15 @@ export function MovieDetailSheet({ movie, onClose }: Props) {
               <IconCheck size={15} /> {iAmGoing ? 'Going ✓' : "I'm Going"}
             </button>
           )}
+          {!liveMovie.watched && !liveMovie.scheduledDate && liveMovie.releaseDate && liveMovie.releaseDate > TODAY && (
+            <button
+              className="btn btn--full"
+              style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: 'var(--color-surface)', border: '1.5px solid var(--color-border)', color: 'var(--color-text)' }}
+              onClick={() => setShowSchedule(true)}
+            >
+              <IconCalendar size={15} /> Plan to Watch
+            </button>
+          )}
           {!liveMovie.watched && (
             <button
               className="btn btn--full"
