@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { AppState, User, Movie, Rating, SyncConfig } from '../types'
+import { sanitizeText } from '../utils/sanitizeText'
 
 const LS = {
   users: 'cine-scores:users',
@@ -41,6 +42,8 @@ function uid() {
 function migrateMovie(m: Movie): Movie {
   return {
     ...m,
+    title: sanitizeText(m.title),
+    description: sanitizeText(m.description ?? ''),
     releaseDate: m.releaseDate ?? null,
     interestedUsers: m.interestedUsers ?? [],
     lastModified: m.lastModified ?? m.addedAt,
