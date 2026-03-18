@@ -13,6 +13,20 @@ interface FileMeta {
   sha: string
 }
 
+function toBase64(str: string): string {
+  const bytes = new TextEncoder().encode(str)
+  let binary = ''
+  for (const byte of bytes) binary += String.fromCharCode(byte)
+  return btoa(binary)
+}
+
+function fromBase64(str: string): string {
+  const binary = atob(str.replace(/\n/g, ''))
+  const bytes = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+  return new TextDecoder().decode(bytes)
+}
+
 const GH_HEADERS = (pat: string) => ({
   Authorization: `Bearer ${pat}`,
   Accept: 'application/vnd.github+json',
@@ -27,13 +41,13 @@ async function ghFetch(pat: string, owner: string, repo: string, branch: string,
   if (res.status === 404) return null
   if (!res.ok) throw new Error(`GitHub fetch failed: ${res.status}`)
   const json = await res.json()
-  return { content: atob(json.content.replace(/\n/g, '')), sha: json.sha }
+  return { content: fromBase64(json.content), sha: json.sha }
 }
 
 async function ghPush(pat: string, owner: string, repo: string, branch: string, path: string, content: string, sha: string | null) {
   const body: Record<string, unknown> = {
     message: `sync: update ${path}`,
-    content: btoa(content),
+    content: toBase64(content),
     branch,
   }
   if (sha) body.sha = sha

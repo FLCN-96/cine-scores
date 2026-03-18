@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useStore } from '../store'
 import { IconBack } from './Icons'
+import { sanitizeText } from '../utils/sanitizeText'
 
 interface Props {
   onClose: () => void
@@ -88,10 +89,10 @@ export function AddMovieSheet({ onClose }: Props) {
   }, [title, tmdbApiKey])
 
   function selectSuggestion(result: TmdbResult) {
-    setTitle(result.title)
+    setTitle(sanitizeText(result.title))
     setYear(result.release_date ? result.release_date.slice(0, 4) : CURRENT_YEAR)
     setPosterUrl(result.poster_path ? `https://image.tmdb.org/t/p/w500${result.poster_path}` : '')
-    setDescription(result.overview ?? '')
+    setDescription(sanitizeText(result.overview ?? ''))
     setGenre(TMDB_GENRE_MAP[result.genre_ids[0]] ?? '')
     setTmdbId(result.id)
     if (result.release_date) setReleaseDate(result.release_date)
