@@ -109,8 +109,10 @@
     "watchedAt": null,
     "id": "1773814855229-ozhks8g",
     "addedAt": "2026-03-18T06:20:55.229Z",
-    "lastModified": "2026-03-18T06:20:55.229Z",
+    "lastModified": "2026-03-18T06:21:11.206Z",
     "attendees": [],
-    "interestedUsers": []
+    "interestedUsers": [
+      "1773294758915-gqqcz75"
+    ]
   }
 ]
