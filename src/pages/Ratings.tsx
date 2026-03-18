@@ -4,7 +4,9 @@ import { MoviePoster } from '../components/MoviePoster'
 import { MovieDetailSheet } from '../components/MovieDetailSheet'
 import { RateMovieSheet } from '../components/RateMovieSheet'
 import { IconStar } from '../components/Icons'
-import type { Movie } from '../types'
+import type { Movie, User } from '../types'
+
+type UserScore = { user: User; score: number }
 
 export function Ratings() {
   const { movies, ratings, users, activeUserId, censorUntilRated } = useStore()
@@ -18,20 +20,39 @@ export function Ratings() {
     [movies, ratings]
   )
 
-  // User view: watched movies + movies that user has rated
+  // User view: only movies that user has actually rated
   const userViewMovies = useMemo(() => {
     if (filterUserId === 'all') return allViewMovies
     const userRatedIds = new Set(ratings.filter(r => r.userId === filterUserId).map(r => r.movieId))
-    return movies.filter(m => m.watched || userRatedIds.has(m.id))
+    return movies.filter(m => userRatedIds.has(m.id))
   }, [filterUserId, movies, ratings, allViewMovies])
 
   const moviesWithStats = useMemo(() => {
     return userViewMovies.map(m => {
+      const allMovieRatings = ratings.filter(r => r.movieId === m.id)
       const mrs = filterUserId === 'all'
-        ? ratings.filter(r => r.movieId === m.id)
-        : ratings.filter(r => r.movieId === m.id && r.userId === filterUserId)
+        ? allMovieRatings
+        : allMovieRatings.filter(r => r.userId === filterUserId)
       const avg = mrs.length ? mrs.reduce((s, r) => s + r.score, 0) / mrs.length : null
-      return { movie: m, avg: avg !== null ? Math.round(avg * 10) / 10 : null, count: mrs.length }
+
+      const userScores: UserScore[] = filterUserId === 'all'
+        ? users
+            .map(u => {
+              const r = allMovieRatings.find(r => r.userId === u.id)
+              return r ? { user: u, score: r.score } : null
+            })
+            .filter((x): x is UserScore => x !== null)
+        : []
+
+      let tag: 'controversial' | 'unanimous' | null = null
+      if (filterUserId === 'all' && userScores.length >= 2) {
+        const scores = userScores.map(us => us.score)
+        const spread = Math.max(...scores) - Math.min(...scores)
+        if (spread >= 4) tag = 'controversial'
+        else if (spread <= 1) tag = 'unanimous'
+      }
+
+      return { movie: m, avg: avg !== null ? Math.round(avg * 10) / 10 : null, count: mrs.length, userScores, tag }
     }).sort((a, b) => {
       // Rated first (by score desc), then unrated alphabetically
       if (a.avg !== null && b.avg !== null) return b.avg - a.avg
@@ -39,7 +60,7 @@ export function Ratings() {
       if (b.avg !== null) return 1
       return a.movie.title.localeCompare(b.movie.title)
     })
-  }, [userViewMovies, ratings, filterUserId])
+  }, [userViewMovies, ratings, filterUserId, users])
 
   const ratedByMe = useMemo(() =>
     new Set(ratings.filter(r => r.userId === activeUserId).map(r => r.movieId)),
@@ -81,7 +102,7 @@ export function Ratings() {
           </div>
         ) : (
           <div className="section">
-            {moviesWithStats.map(({ movie, avg, count }, idx) => {
+            {moviesWithStats.map(({ movie, avg, count, userScores, tag }, idx) => {
               const showRateBtn = isMyFilter && activeUserId && !ratedByMe.has(movie.id)
               const isCensored = censorUntilRated && !ratedByMe.has(movie.id)
               const ranked = avg !== null && filterUserId === 'all' && !isCensored
@@ -101,8 +122,36 @@ export function Ratings() {
                       {[movie.year, movie.genre].filter(Boolean).join(' · ')}
                     </div>
                     {filterUserId === 'all' && !isCensored && (
-                      <div style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
-                        {count} rating{count !== 1 ? 's' : ''}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
+                        {userScores.map(({ user, score }) => (
+                          <span key={user.id} style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 3,
+                            padding: '2px 6px', borderRadius: 20, fontSize: 11, fontWeight: 700,
+                            background: `${user.color}22`, color: user.color, border: `1px solid ${user.color}44`,
+                          }}>
+                            <span style={{
+                              width: 14, height: 14, borderRadius: '50%',
+                              background: user.color, color: '#fff',
+                              fontSize: 9, fontWeight: 800,
+                              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                            }}>
+                              {user.name.charAt(0).toUpperCase()}
+                            </span>
+                            {score}
+                          </span>
+                        ))}
+                        {userScores.length === 0 && (
+                          <span style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>No ratings yet</span>
+                        )}
+                      </div>
+                    )}
+                    {filterUserId === 'all' && !isCensored && tag && (
+                      <div style={{
+                        marginTop: 3, fontSize: 10, fontWeight: 700,
+                        letterSpacing: '0.04em', textTransform: 'uppercase',
+                        color: tag === 'controversial' ? 'var(--color-accent)' : 'var(--color-success)',
+                      }}>
+                        {tag === 'controversial' ? '⚡ Controversial' : '✓ Unanimous'}
                       </div>
                     )}
                   </div>
