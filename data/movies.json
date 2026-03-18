@@ -94,5 +94,23 @@
     "lastModified": "2026-03-15T18:01:51.938Z",
     "attendees": [],
     "interestedUsers": []
+  },
+  {
+    "title": "Billie Eilish - Hit Me Hard and Soft: The Tour (Live in 3D)",
+    "year": 2026,
+    "genre": "",
+    "description": "Described as \"an innovative new concert experience\", as it charts Billie Eilish' Hit Me Hard and Soft tour.",
+    "posterUrl": "https://image.tmdb.org/t/p/w500/m9JQjDufp397fjWD0fh9LdbYhMg.jpg",
+    "releaseDate": "2026-05-09",
+    "scheduledDate": null,
+    "addedBy": "1773294758915-gqqcz75",
+    "tmdbId": 1515899,
+    "watched": false,
+    "watchedAt": null,
+    "id": "1773814855229-ozhks8g",
+    "addedAt": "2026-03-18T06:20:55.229Z",
+    "lastModified": "2026-03-18T06:20:55.229Z",
+    "attendees": [],
+    "interestedUsers": []
   }
 ]
