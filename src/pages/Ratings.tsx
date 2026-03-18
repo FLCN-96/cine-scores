@@ -102,7 +102,7 @@ export function Ratings() {
           </div>
         ) : (
           <div className="section">
-            {moviesWithStats.map(({ movie, avg, count, userScores, tag }, idx) => {
+            {moviesWithStats.map(({ movie, avg, userScores, tag }, idx) => {
               const showRateBtn = isMyFilter && activeUserId && !ratedByMe.has(movie.id)
               const isCensored = censorUntilRated && !ratedByMe.has(movie.id)
               const ranked = avg !== null && filterUserId === 'all' && !isCensored
