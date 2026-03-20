@@ -83,7 +83,7 @@ export function Ratings() {
           >
             All
           </button>
-          {users.map(u => (
+          {users.filter(u => ratings.some(r => r.userId === u.id)).map(u => (
             <button
               key={u.id}
               className={`chip${filterUserId === u.id ? ' active' : ''}`}
