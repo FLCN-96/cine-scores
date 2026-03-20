@@ -83,6 +83,14 @@ export function MovieDetailSheet({ movie, onClose }: Props) {
             <div className="sheet-movie-sub">
               {[liveMovie.year, liveMovie.genre].filter(Boolean).join(' · ')}
             </div>
+            <a
+              href={`https://www.rottentomatoes.com/search?search=${encodeURIComponent(liveMovie.title)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ fontSize: 12, color: 'var(--color-text-muted)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 2 }}
+            >
+              🍅 Rotten Tomatoes
+            </a>
             {stats.avg !== null && !myCensored && (
               <div className="sheet-movie-score">
                 <span style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-primary)' }}>{stats.avg}</span>
