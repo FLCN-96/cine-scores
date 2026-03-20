@@ -114,5 +114,23 @@
     "interestedUsers": [
       "1773294758915-gqqcz75"
     ]
+  },
+  {
+    "title": "Scary Movie",
+    "year": 2026,
+    "genre": "Comedy",
+    "description": "Twenty-six years after outrunning a suspiciously familiar masked killer, the Core Four are back in the killer's crosshairs and no horror movie IP is safe.",
+    "posterUrl": "https://image.tmdb.org/t/p/w500/q6w7zZjrP80I4Nal56PE5Vat3sf.jpg",
+    "releaseDate": "2026-06-03",
+    "scheduledDate": null,
+    "addedBy": "1773294758915-gqqcz75",
+    "tmdbId": 1273221,
+    "watched": false,
+    "watchedAt": null,
+    "id": "1773966460050-re5iyjn",
+    "addedAt": "2026-03-20T00:27:40.050Z",
+    "lastModified": "2026-03-20T00:27:40.050Z",
+    "attendees": [],
+    "interestedUsers": []
   }
 ]
