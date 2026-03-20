@@ -134,5 +134,25 @@
     "interestedUsers": [
       "1773294758915-gqqcz75"
     ]
+  },
+  {
+    "title": "Backrooms",
+    "year": 2026,
+    "genre": "Horror",
+    "description": "A strange doorway appears in the basement of a furniture showroom.",
+    "posterUrl": "https://image.tmdb.org/t/p/w500/sYn6PHN0PE6ep3TGlYS5bM3AkPg.jpg",
+    "releaseDate": "2026-05-27",
+    "scheduledDate": null,
+    "addedBy": "1773294758915-gqqcz75",
+    "tmdbId": 1083381,
+    "watched": false,
+    "watchedAt": null,
+    "id": "1774037848291-qepedz3",
+    "addedAt": "2026-03-20T20:17:28.291Z",
+    "lastModified": "2026-03-20T20:17:30.763Z",
+    "attendees": [],
+    "interestedUsers": [
+      "1773294758915-gqqcz75"
+    ]
   }
 ]
