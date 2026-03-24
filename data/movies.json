@@ -154,5 +154,23 @@
     "interestedUsers": [
       "1773294758915-gqqcz75"
     ]
+  },
+  {
+    "title": "Project Hail Mary",
+    "year": 2026,
+    "genre": "Sci-Fi",
+    "description": "Science teacher Ryland Grace wakes up on a spaceship light years from home with no recollection of who he is or how he got there. As his memory returns, he begins to uncover his mission: solve the riddle of the mysterious substance causing the sun to die out. He must call on his scientific knowledge and unorthodox ideas to save everything on Earth from extinction... but an unexpected friendship means he may not have to do it alone.",
+    "posterUrl": "https://image.tmdb.org/t/p/w500/yihdXomYb5kTeSivtFndMy5iDmf.jpg",
+    "releaseDate": null,
+    "scheduledDate": null,
+    "addedBy": "1773294758915-gqqcz75",
+    "tmdbId": 687163,
+    "watched": false,
+    "watchedAt": null,
+    "id": "1774321149669-ywb97gh",
+    "addedAt": "2026-03-24T02:59:09.669Z",
+    "lastModified": "2026-03-24T02:59:09.669Z",
+    "attendees": [],
+    "interestedUsers": []
   }
 ]
