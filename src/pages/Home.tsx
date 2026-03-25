@@ -36,7 +36,8 @@ function PosterCell({ movie, category, users, activeUserId, onTap, onToggleInter
   onToggleInterest: () => void
 }) {
   const interested = activeUserId ? (movie.interestedUsers ?? []).includes(activeUserId) : false
-  const attendees = (movie.attendees ?? [])
+  const avatarIds = category === 'scheduled' ? (movie.attendees ?? []) : (movie.interestedUsers ?? [])
+  const avatarUsers = avatarIds
     .map(uid => users.find(u => u.id === uid))
     .filter((u): u is User => u !== undefined)
 
@@ -68,10 +69,10 @@ function PosterCell({ movie, category, users, activeUserId, onTap, onToggleInter
         {interested ? '♥' : '♡'}
       </button>
 
-      {/* Attendee avatars — bottom left */}
-      {attendees.length > 0 && (
+      {/* Avatars — bottom left (attendees for scheduled, interested for others) */}
+      {avatarUsers.length > 0 && (
         <div className="poster-avatars">
-          {attendees.slice(0, 4).map(u => (
+          {avatarUsers.slice(0, 4).map(u => (
             <div key={u.id} className="poster-avatar" style={{ background: u.color }}>
               {u.name.charAt(0).toUpperCase()}
             </div>
