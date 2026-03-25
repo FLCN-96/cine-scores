@@ -84,7 +84,7 @@ export function MovieDetailSheet({ movie, onClose }: Props) {
               {[liveMovie.year, liveMovie.genre].filter(Boolean).join(' · ')}
             </div>
             <a
-              href={`https://www.rottentomatoes.com/search?search=${encodeURIComponent(liveMovie.title)}`}
+              href={`https://www.rottentomatoes.com/search?search=${encodeURIComponent(liveMovie.year ? `${liveMovie.title} ${liveMovie.year}` : liveMovie.title)}`}
               target="_blank"
               rel="noopener noreferrer"
               style={{ fontSize: 12, color: 'var(--color-text-muted)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 2 }}
