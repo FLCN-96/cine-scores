@@ -5,7 +5,9 @@ import { MoviePoster } from './MoviePoster'
 import { RateMovieSheet } from './RateMovieSheet'
 import { ScheduleSheet } from './ScheduleSheet'
 import { useAllMovieStats } from '../hooks/useMovieStats'
-import { IconStar, IconCheck, IconCalendar, IconTrash, IconBack } from './Icons'
+import { IconStar, IconCheck, IconCalendar, IconTrash, IconBack, IconTicket } from './Icons'
+import { THEATER } from '../config/theater'
+import { getTheaterUrl, getShowtimesUrl } from '../utils/theaterLinks'
 
 function IconPencil({ size = 14 }: { size?: number }) {
   return (
@@ -91,6 +93,27 @@ export function MovieDetailSheet({ movie, onClose }: Props) {
             >
               🍅 Rotten Tomatoes
             </a>
+            <div style={{ fontSize: 12, color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
+              <IconTicket size={12} />
+              <span>{THEATER.shortName}:</span>
+              <a
+                href={getTheaterUrl()}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: 'var(--color-primary)', textDecoration: 'none' }}
+              >
+                Cinemark
+              </a>
+              <span style={{ opacity: 0.4 }}>|</span>
+              <a
+                href={getShowtimesUrl(liveMovie.scheduledDate)}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: 'var(--color-text-muted)', textDecoration: 'none' }}
+              >
+                Fandango
+              </a>
+            </div>
             {stats.avg !== null && !myCensored && (
               <div className="sheet-movie-score">
                 <span style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-primary)' }}>{stats.avg}</span>

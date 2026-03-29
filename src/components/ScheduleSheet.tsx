@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { useStore } from '../store'
 import type { Movie } from '../types'
-import { IconBack, IconCalendar } from './Icons'
+import { IconBack, IconCalendar, IconTicket } from './Icons'
+import { THEATER } from '../config/theater'
+import { getTheaterUrl, getShowtimesUrl } from '../utils/theaterLinks'
 
 interface Props {
   movie: Movie
@@ -86,6 +88,30 @@ export function ScheduleSheet({ movie, onClose, mode = 'schedule' }: Props) {
             />
           </div>
         </form>
+
+        {!isRelease && (
+          <div style={{ marginTop: 'var(--space-md)', fontSize: 13, color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: 5 }}>
+            <IconTicket size={13} />
+            <span>Check {THEATER.shortName}:</span>
+            <a
+              href={getTheaterUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: 'var(--color-primary)', textDecoration: 'none' }}
+            >
+              Cinemark
+            </a>
+            <span style={{ opacity: 0.4 }}>|</span>
+            <a
+              href={getShowtimesUrl(date)}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: 'var(--color-text-muted)', textDecoration: 'none' }}
+            >
+              Fandango
+            </a>
+          </div>
+        )}
 
         <div style={{ marginTop: 'var(--space-md)' }}>
           <button

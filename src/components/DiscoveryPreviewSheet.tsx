@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../store'
 import { sanitizeText } from '../utils/sanitizeText'
-import { IconBack, IconFilm } from './Icons'
+import { IconBack, IconFilm, IconTicket } from './Icons'
+import { THEATER } from '../config/theater'
+import { getTheaterUrl } from '../utils/theaterLinks'
 import type { TmdbDiscoveryMovie } from '../hooks/useTmdbDiscovery'
 
 interface Props {
@@ -153,6 +155,15 @@ export function DiscoveryPreviewSheet({ movie, onClose }: Props) {
             Finding trailer...
           </div>
         ) : null}
+        <a
+          href={getTheaterUrl()}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn btn--full"
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, textDecoration: 'none', background: 'var(--color-surface)', border: '1.5px solid var(--color-border)', color: 'var(--color-text)' }}
+        >
+          <IconTicket size={14} /> Showtimes at {THEATER.shortName}
+        </a>
       </div>
     </div>
   )

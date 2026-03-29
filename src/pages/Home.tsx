@@ -4,7 +4,9 @@ import { MovieDetailSheet } from '../components/MovieDetailSheet'
 import { MarqueeRow } from '../components/MarqueeRow'
 import { DiscoveryPreviewSheet } from '../components/DiscoveryPreviewSheet'
 import { useTmdbDiscovery, type TmdbDiscoveryMovie } from '../hooks/useTmdbDiscovery'
-import { IconFilm } from '../components/Icons'
+import { IconFilm, IconTicket } from '../components/Icons'
+import { THEATER } from '../config/theater'
+import { getTheaterUrl } from '../utils/theaterLinks'
 import type { Movie, User } from '../types'
 
 const TODAY = new Date().toISOString().split('T')[0]
@@ -121,6 +123,14 @@ export function Home() {
             {activeUser && (
               <div className="page-subtitle">Hey, {activeUser.name}!</div>
             )}
+            <a
+              href={getTheaterUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ fontSize: 12, color: 'var(--color-text-muted)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4 }}
+            >
+              <IconTicket size={12} /> {THEATER.shortName} Showtimes
+            </a>
           </div>
         </div>
 
