@@ -74,6 +74,8 @@ export function DiscoveryPreviewSheet({ movie, onClose }: Props) {
       scheduledDate: null,
       addedBy: activeUserId,
       tmdbId: movie.id,
+      watched: false,
+      watchedAt: null,
     })
     setJustAdded(true)
   }
