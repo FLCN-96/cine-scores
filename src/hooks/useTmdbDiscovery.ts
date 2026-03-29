@@ -9,6 +9,7 @@ export interface TmdbDiscoveryMovie {
   release_date: string
   overview: string
   vote_average: number
+  genre_ids: number[]
 }
 
 interface DiscoveryData {
@@ -58,12 +59,18 @@ export function useTmdbDiscovery() {
     const controller = new AbortController()
     setLoading(true)
 
+    const cutoff = new Date()
+    cutoff.setDate(cutoff.getDate() - 45)
+    const cutoffStr = cutoff.toISOString().split('T')[0]
+
     Promise.all([
-      fetch(`https://api.themoviedb.org/3/movie/now_playing?api_key=${tmdbApiKey}&page=1`, { signal: controller.signal }).then(r => r.json()),
-      fetch(`https://api.themoviedb.org/3/movie/upcoming?api_key=${tmdbApiKey}&page=1`, { signal: controller.signal }).then(r => r.json()),
+      fetch(`https://api.themoviedb.org/3/movie/now_playing?api_key=${tmdbApiKey}&page=1&region=US`, { signal: controller.signal }).then(r => r.json()),
+      fetch(`https://api.themoviedb.org/3/movie/upcoming?api_key=${tmdbApiKey}&page=1&region=US`, { signal: controller.signal }).then(r => r.json()),
     ])
       .then(([npRes, upRes]) => {
-        const nowPlaying: TmdbDiscoveryMovie[] = (npRes.results ?? []).map(sanitizeMovie)
+        const nowPlaying: TmdbDiscoveryMovie[] = (npRes.results ?? [])
+          .map(sanitizeMovie)
+          .filter((m: TmdbDiscoveryMovie) => !m.release_date || m.release_date >= cutoffStr)
         const nowPlayingIds = new Set(nowPlaying.map(m => m.id))
         const upcoming: TmdbDiscoveryMovie[] = (upRes.results ?? [])
           .map(sanitizeMovie)

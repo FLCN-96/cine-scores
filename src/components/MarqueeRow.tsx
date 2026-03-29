@@ -11,6 +11,13 @@ function formatShortDate(d: string): string {
   return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
+function ratingTier(score: number): string {
+  if (score > 9) return ' marquee-card__rating--diamond'
+  if (score >= 7.5) return ' marquee-card__rating--hot'
+  if (score < 5) return ' marquee-card__rating--stinky'
+  return ''
+}
+
 export function MarqueeRow({ title, movies, onMovieTap }: Props) {
   if (movies.length === 0) return null
 
@@ -33,7 +40,7 @@ export function MarqueeRow({ title, movies, onMovieTap }: Props) {
               </div>
             )}
             {movie.vote_average > 0 && (
-              <div className="marquee-card__rating">
+              <div className={`marquee-card__rating${ratingTier(movie.vote_average)}`}>
                 {movie.vote_average.toFixed(1)}
               </div>
             )}

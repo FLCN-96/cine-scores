@@ -1,11 +1,19 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../store'
+import { sanitizeText } from '../utils/sanitizeText'
 import { IconBack, IconFilm } from './Icons'
 import type { TmdbDiscoveryMovie } from '../hooks/useTmdbDiscovery'
 
 interface Props {
   movie: TmdbDiscoveryMovie
   onClose: () => void
+}
+
+const TODAY = new Date().toISOString().split('T')[0]
+
+const TMDB_GENRE_MAP: Record<number, string> = {
+  28: 'Action', 35: 'Comedy', 18: 'Drama', 27: 'Horror',
+  878: 'Sci-Fi', 53: 'Thriller', 10749: 'Romance', 16: 'Animation', 99: 'Documentary',
 }
 
 function formatDate(d: string) {
@@ -43,11 +51,35 @@ function useTrailer(tmdbId: number) {
 
 export function DiscoveryPreviewSheet({ movie, onClose }: Props) {
   const { trailerUrl, loading: trailerLoading } = useTrailer(movie.id)
+  const { movies, activeUserId, addMovie } = useStore()
+  const [justAdded, setJustAdded] = useState(false)
+
+  const alreadyInCollection = movies.some(m => m.tmdbId === movie.id)
+  const isReleased = movie.release_date && movie.release_date <= TODAY
 
   const scoreColor =
     movie.vote_average >= 7 ? 'var(--color-success)' :
     movie.vote_average >= 5 ? 'var(--color-accent)' :
     'var(--color-danger)'
+
+  function handleQuickAdd() {
+    if (!activeUserId || alreadyInCollection) return
+    addMovie({
+      title: sanitizeText(movie.title),
+      year: movie.release_date ? Number(movie.release_date.slice(0, 4)) : null,
+      genre: TMDB_GENRE_MAP[movie.genre_ids?.[0]] ?? 'Other',
+      posterUrl: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : '',
+      description: sanitizeText(movie.overview),
+      releaseDate: isReleased ? null : movie.release_date,
+      scheduledDate: null,
+      addedBy: activeUserId,
+      tmdbId: movie.id,
+    })
+    setJustAdded(true)
+  }
+
+  const addButtonLabel = justAdded || alreadyInCollection ? 'Already Added' : 'Add to Watchlist'
+  const addButtonDisabled = !activeUserId || alreadyInCollection || justAdded
 
   return (
     <div className="page-view">
@@ -84,6 +116,7 @@ export function DiscoveryPreviewSheet({ movie, onClose }: Props) {
                   {movie.vote_average.toFixed(1)}
                 </span>
                 <span style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>/ 10</span>
+                <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-muted)', background: 'var(--color-surface-raised)', padding: '2px 5px', borderRadius: 4, marginLeft: 4 }}>TMDB</span>
               </div>
             )}
           </div>
@@ -94,25 +127,31 @@ export function DiscoveryPreviewSheet({ movie, onClose }: Props) {
         )}
       </div>
 
-      {(trailerUrl || trailerLoading) && (
-        <div className="sheet-footer">
-          {trailerUrl ? (
-            <a
-              href={trailerUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn btn--primary btn--full"
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, textDecoration: 'none' }}
-            >
-              ▶ Watch Trailer
-            </a>
-          ) : (
-            <div style={{ textAlign: 'center', fontSize: 13, color: 'var(--color-text-muted)', padding: 'var(--space-sm) 0' }}>
-              Finding trailer...
-            </div>
-          )}
-        </div>
-      )}
+      <div className="sheet-footer" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
+        <button
+          className={`btn btn--full${addButtonDisabled ? '' : ' btn--secondary'}`}
+          style={addButtonDisabled ? { opacity: 0.5, cursor: 'default', background: 'var(--color-surface-raised)', border: '1.5px solid var(--color-border)', color: 'var(--color-text-muted)' } : {}}
+          onClick={handleQuickAdd}
+          disabled={addButtonDisabled}
+        >
+          {justAdded ? '+ Added!' : addButtonLabel}
+        </button>
+        {trailerUrl ? (
+          <a
+            href={trailerUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn--primary btn--full"
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, textDecoration: 'none' }}
+          >
+            ▶ Watch Trailer
+          </a>
+        ) : trailerLoading ? (
+          <div style={{ textAlign: 'center', fontSize: 13, color: 'var(--color-text-muted)', padding: 'var(--space-sm) 0' }}>
+            Finding trailer...
+          </div>
+        ) : null}
+      </div>
     </div>
   )
 }
