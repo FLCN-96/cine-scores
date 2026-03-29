@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useStore } from '../store'
 import { MovieDetailSheet } from '../components/MovieDetailSheet'
+import { MarqueeRow } from '../components/MarqueeRow'
+import { DiscoveryPreviewSheet } from '../components/DiscoveryPreviewSheet'
+import { useTmdbDiscovery, type TmdbDiscoveryMovie } from '../hooks/useTmdbDiscovery'
 import { IconFilm } from '../components/Icons'
 import type { Movie, User } from '../types'
 
@@ -84,9 +86,10 @@ function PosterCell({ movie, category, users, activeUserId, onTap, onToggleInter
 }
 
 export function Home() {
-  const { movies, users, ratings, activeUserId, toggleInterest } = useStore()
+  const { movies, users, activeUserId, toggleInterest } = useStore()
   const [selected, setSelected] = useState<Movie | null>(null)
-  const navigate = useNavigate()
+  const [discoveryMovie, setDiscoveryMovie] = useState<TmdbDiscoveryMovie | null>(null)
+  const { nowPlaying, upcoming: comingSoon } = useTmdbDiscovery()
 
   const activeUser = users.find(u => u.id === activeUserId)
 
@@ -107,9 +110,7 @@ export function Home() {
       })
   }, [movies])
 
-  const watchedCount = movies.filter(m => m.watched).length
-  const totalMovies = movies.length
-  const ratingsCount = ratings.length
+  const hasMarquee = nowPlaying.length > 0 || comingSoon.length > 0
 
   return (
     <div className="app-content">
@@ -123,35 +124,26 @@ export function Home() {
           </div>
         </div>
 
-        <div className="stat-grid">
-          <div className="stat-card">
-            <div className="stat-card__value">{totalMovies}</div>
-            <div className="stat-card__label">Movies</div>
-          </div>
-          <button className="stat-card stat-card--btn" onClick={() => navigate('/upcoming?tab=watched')}>
-            <div className="stat-card__value">{watchedCount}</div>
-            <div className="stat-card__label">Watched</div>
-          </button>
-          <button className="stat-card stat-card--btn" onClick={() => navigate('/ratings')}>
-            <div className="stat-card__value">{ratingsCount}</div>
-            <div className="stat-card__label">Ratings</div>
-          </button>
-        </div>
+        <MarqueeRow title="Now Playing" movies={nowPlaying} onMovieTap={setDiscoveryMovie} />
+        <MarqueeRow title="Coming Soon" movies={comingSoon} onMovieTap={setDiscoveryMovie} />
 
         {gridMovies.length > 0 && (
-          <div className="poster-grid">
-            {gridMovies.map(({ movie, category }) => (
-              <PosterCell
-                key={movie.id}
-                movie={movie}
-                category={category}
-                users={users}
-                activeUserId={activeUserId}
-                onTap={() => setSelected(movie)}
-                onToggleInterest={() => activeUserId && toggleInterest(movie.id)}
-              />
-            ))}
-          </div>
+          <>
+            {hasMarquee && <div className="home-section-label">Your Movies</div>}
+            <div className="poster-grid">
+              {gridMovies.map(({ movie, category }) => (
+                <PosterCell
+                  key={movie.id}
+                  movie={movie}
+                  category={category}
+                  users={users}
+                  activeUserId={activeUserId}
+                  onTap={() => setSelected(movie)}
+                  onToggleInterest={() => activeUserId && toggleInterest(movie.id)}
+                />
+              ))}
+            </div>
+          </>
         )}
 
         {movies.length === 0 && (
@@ -170,6 +162,7 @@ export function Home() {
       </div>
 
       {selected && <MovieDetailSheet movie={selected} onClose={() => setSelected(null)} />}
+      {discoveryMovie && <DiscoveryPreviewSheet movie={discoveryMovie} onClose={() => setDiscoveryMovie(null)} />}
     </div>
   )
 }

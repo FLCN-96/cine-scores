@@ -7,6 +7,7 @@ import { AddMovieSheet } from '../components/AddMovieSheet'
 import { RateMovieSheet } from '../components/RateMovieSheet'
 import { ScheduleSheet } from '../components/ScheduleSheet'
 import { useAllMovieStats } from '../hooks/useMovieStats'
+import { TeamStats } from '../components/TeamStats'
 import { IconCalendar, IconClipboard, IconEye, IconCheck, IconStar } from '../components/Icons'
 import type { Movie } from '../types'
 
@@ -108,6 +109,8 @@ export function Upcoming() {
             + Add
           </button>
         </div>
+
+        <TeamStats />
 
         <div className="chip-row">
           {tabs.map(tab => (
