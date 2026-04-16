@@ -102,14 +102,14 @@
     "description": "Described as \"an innovative new concert experience\", as it charts Billie Eilish' Hit Me Hard and Soft tour.",
     "posterUrl": "https://image.tmdb.org/t/p/w500/m9JQjDufp397fjWD0fh9LdbYhMg.jpg",
     "releaseDate": "2026-05-09",
-    "scheduledDate": null,
+    "scheduledDate": "2026-05-08",
     "addedBy": "1773294758915-gqqcz75",
     "tmdbId": 1515899,
     "watched": false,
     "watchedAt": null,
     "id": "1773814855229-ozhks8g",
     "addedAt": "2026-03-18T06:20:55.229Z",
-    "lastModified": "2026-03-18T06:21:11.206Z",
+    "lastModified": "2026-04-16T19:19:53.801Z",
     "attendees": [],
     "interestedUsers": [
       "1773294758915-gqqcz75"
@@ -192,5 +192,23 @@
     "interestedUsers": [
       "1773294758915-gqqcz75"
     ]
+  },
+  {
+    "title": "Leviticus",
+    "year": 2026,
+    "genre": "Horror",
+    "description": "Two teenage boys must escape a violent entity that takes the form of the person they desire most  -  each other.",
+    "posterUrl": "https://image.tmdb.org/t/p/w500/nm1GXDe9riIWZzTvvS4za5aPwmY.jpg",
+    "releaseDate": "2026-06-19",
+    "scheduledDate": null,
+    "addedBy": "1773294758915-gqqcz75",
+    "tmdbId": 1564614,
+    "watched": false,
+    "watchedAt": null,
+    "id": "1776367162328-x9cegna",
+    "addedAt": "2026-04-16T19:19:22.328Z",
+    "lastModified": "2026-04-16T19:19:22.328Z",
+    "attendees": [],
+    "interestedUsers": []
   }
 ]
